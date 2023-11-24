@@ -22,7 +22,6 @@
         <template v-for="(item,index) in tableHead">
           <el-table-column  :prop="item.prop" :label="item.label" :key="index" :width="item.width"></el-table-column>
         </template>
-
       </el-table>
     </el-dialog>
     <el-form label-position='top' label-width="80px" >
@@ -45,7 +44,8 @@
       </el-form>
 
 <!--    节点最短路径-->
-    <el-form :inline="true">
+    <el-form :inline="true" >
+      <p >  最短路径</p>
       <el-form-item label="开始节点">
         <el-input v-model="startID" placeholder="节点ID"></el-input>
       </el-form-item>
@@ -68,14 +68,53 @@
 <!--          <el-option label="区域一" value="shanghai"></el-option>-->
 <!--          <el-option label="区域二" value="beijing"></el-option>-->
 <!--        </el-select>-->
+        <el-select v-model="typeSelect" placeholder="类型">
+          <el-option v-for="item in type" :key="item.value" :label="item.label" :value="item.value"></el-option>
+        </el-select>
       </el-form-item>
-      <el-select v-model="typeSelect" placeholder="类型">
-        <el-option v-for="(value,key,index) of type" label="value" value='value'  :key="key" >{{value}}</el-option>
-      </el-select>
       <el-form-item>
-<!--        <el-button type="primary" @click="onSubmit">查询</el-button>-->
+        <el-button type="primary" @click="onSubmit">查询</el-button>
       </el-form-item>
     </el-form>
+<!--    寻找关键节点-->
+    <el-form :inline="true" >
+      <p >  关键节点</p>
+      <el-form-item label="输入节点个数">
+        <el-input v-model="num" placeholder="个数"></el-input>
+      </el-form-item>
+      <el-radio v-model="keyNodeType" label="pr">pagerank</el-radio>
+      <el-radio v-model="keyNodeType" label="bc">中介中心性</el-radio>
+      <el-radio v-model="keyNodeType" label="dc">度中心性</el-radio>
+      <el-radio v-model="keyNodeType" label="cc">紧密中心性</el-radio>
+      <el-form-item>
+        <el-button type="primary" @click="keyNode">查询</el-button>
+      </el-form-item>
+      <el-button type="text" @click="keynodeVisible = true">查看详细信息</el-button>
+      <el-dialog title="详细信息" :visible.sync="keynodeVisible" width="60%">
+        <el-table style="width: 100%" border :data="keyNodeTable" empty-text="暂无数据">
+
+            <el-table-column
+                prop="name"
+                label="名称"
+                width="300">
+            </el-table-column>
+          <el-table-column
+              prop="lable"
+              label="类型"
+              width="300">
+          </el-table-column>
+          <el-table-column
+              prop="value"
+              label="节点得分"
+              width="300">
+          </el-table-column>
+<!--          <template v-for="(item,index) in keyNodeTable">-->
+<!--            <el-table-column  :prop="item.prop" :label="item.label" :key="index" :width="item.width"></el-table-column>-->
+<!--          </template>-->
+        </el-table>
+      </el-dialog>
+    </el-form>
+<!--    时间轴-->
     <div id="timebrush_div" style="z-index: 999;position: absolute;margin-top: -35px;width:100%;" class="test1"></div>
   </div>
 </template>
@@ -95,6 +134,10 @@ export default {
   name: "graphViewV4",
   data() {
     return {
+      keynodeVisible:false,
+      keyNodeTable:[],
+      keyNodeType:'',
+      num:'',
       typeSelect:'',
       directed:false,
       startID:null,
@@ -110,60 +153,127 @@ export default {
       tableData:[],
       content: '',
       graphData: {},
-      type :{'board': '板块',
-          'category': '行业-门类',
-          'categoryBig': '行业-大类',
-          'city': '地点-市',
-          'country': '地点-国家',
-        'listFiniCompOthe': '上市公司-金融机构-其他金融机构',
-        'listSecuComp': '上市公司-金融机构-证券',
-        'listedBank': '上市公司-金融机构-银行',
-        'listedCompany': '上市公司-实体企业',
-        'listedInsuComp': '上市公司-金融机构-保险',
-        'listedPrivFundComp': '上市公司-金融机构-基金-私募基金',
-        'listedPublFundComp': '上市公司-金融机构-基金-公募基金',
-        'listedTrusComp': '上市公司-金融机构-信托',
-        'market': '交易所',
-        'personFundMana': '人物-基金经理',
-        'personPerson': '人物-普通人物',
-        'productBond': '产品-金融产品-债券',
-        'productPrivFund': '产品-金融产品-基金--私募',
-        'productPublFund': '产品-金融产品-基金--公募',
-        'productREITS': '产品-金融产品-基金—REITS',
-        'productStock': '产品-金融产品-股票',
-        'province': '地点-省',
-        'regulatorBS': '监管机构-银保监会（局）',
-        'regulatorCB': '监管机构-人民银行（分行）',
-        'regulatorIA': '监管机构-行业协会',
-        'regulatorSC': '监管机构-证监会（局）',
-        'school': '学校',
-        'unlistSecuComp': '非上市公司-金融机构-证券',
-        'unlistedBank': '非上市公司-金融机构-银行',
-        'unlistedCompany': '非上市公司-实体企业',
-        'unlistedInsuComp': '非上市公司-金融机构-保险',
-        'unlistedOtheFundComp': '非上市公司-金融机构-其他金融机构',
-        'unlistedPublFundComp': '非上市公司-金融机构-基金-公募基金',
-        'unlistedTrusComp': '非上市公司-金融机构-信托',
-        'county': '地点-县/区',
-        'unlistedOtherCom': '非上市公司其他公司',
-        'None_com': '未知',
-        'organization': '组织机构',
-        'productOtheFini': '产品-金融产品-其他',
-        'TimeTAG': '时间',
-        'ShareholderReduction': '事件-股东减持',
-        'ShareholderIncrease': '事件-股东增持',
-        'ReportingMedia': '报道媒体',
-        'MajorSafetyAccident': '事件-重大安全事故',
-        'MajorExternalCompensation': '事件-重大对外赔付',
-        'MajorAssetLosses': '事件-重大资产损失',
-        'HighLevelDeath': '事件-高层死亡',
-        'EventEquityPledge': '事件-股权质押',
-        'EquityFreeze': '事件-股权冻结',
-        'BankruptcyLiquidation': '事件-破产清算'
-      },
+      type :[{'value': '板块', 'label': '板块'}, {'value': '行业-门类', 'label': '行业-门类'}, {'value': '行业-大类', 'label': '行业-大类'}, {'value': '地点-市', 'label': '地点-市'}, {'value': '地点-国家', 'label': '地点-国家'}, {'value': '上市公司-金融机构-其他金融机构', 'label': '上市公司-金融机构-其他金融机构'}, {'value': '上市公司-金融机构-证券', 'label': '上市公司-金融机构-证券'}, {'value': '上市公司-金融机构-银行', 'label': '上市公司-金融机构-银行'}, {'value': '上市公司-实体企业', 'label': '上市公司-实体企业'}, {'value': '上市公司-金融机构-保险', 'label': '上市公司-金融机构-保险'}, {'value': '上市公司-金融机构-基金-私募基金', 'label': '上市公司-金融机构-基金-私募基金'}, {'value': '上市公司-金融机构-基金-公募基金', 'label': '上市公司-金融机构-基金-公募基金'}, {'value': '上市公司-金融机构-信托', 'label': '上市公司-金融机构-信托'}, {'value': '交易所', 'label': '交易所'}, {'value': '人物-基金经理', 'label': '人物-基金经理'}, {'value': '人物-普通人物', 'label': '人物-普通人物'}, {'value': '产品-金融产品-债券', 'label': '产品-金融产品-债券'}, {'value': '产品-金融产品-基金--私募', 'label': '产品-金融产品-基金--私募'}, {'value': '产品-金融产品-基金--公募', 'label': '产品-金融产品-基金--公募'}, {'value': '产品-金融产品-基金—REITS', 'label': '产品-金融产品-基金—REITS'}, {'value': '产品-金融产品-股票', 'label': '产品-金融产品-股票'}, {'value': '地点-省', 'label': '地点-省'}, {'value': '监管机构-银保监会（局）', 'label': '监管机构-银保监会（局）'}, {'value': '监管机构-人民银行（分行）', 'label': '监管机构-人民银行（分行）'}, {'value': '监管机构-行业协会', 'label': '监管机构-行业协会'}, {'value': '监管机构-证监会（局）', 'label': '监管机构-证监会（局）'}, {'value': '学校', 'label': '学校'}, {'value': '非上市公司-金融机构-证券', 'label': '非上市公司-金融机构-证券'}, {'value': '非上市公司-金融机构-银行', 'label': '非上市公司-金融机构-银行'}, {'value': '非上市公司-实体企业', 'label': '非上市公司-实体企业'}, {'value': '非上市公司-金融机构-保险', 'label': '非上市公司-金融机构-保险'}, {'value': '非上市公司-金融机构-其他金融机构', 'label': '非上市公司-金融机构-其他金融机构'}, {'value': '非上市公司-金融机构-基金-公募基金', 'label': '非上市公司-金融机构-基金-公募基金'}, {'value': '非上市公司-金融机构-信托', 'label': '非上市公司-金融机构-信托'}, {'value': '地点-县/区', 'label': '地点-县/区'}, {'value': '非上市公司其他公司', 'label': '非上市公司其他公司'}, {'value': '未知', 'label': '未知'}, {'value': '组织机构', 'label': '组织机构'}, {'value': '产品-金融产品-其他', 'label': '产品-金融产品-其他'}, {'value': '时间', 'label': '时间'}, {'value': '事件-股东减持', 'label': '事件-股东减持'}, {'value': '事件-股东增持', 'label': '事件-股东增持'}, {'value': '报道媒体', 'label': '报道媒体'}, {'value': '事件-重大安全事故', 'label': '事件-重大安全事故'}, {'value': '事件-重大对外赔付', 'label': '事件-重大对外赔付'}, {'value': '事件-重大资产损失', 'label': '事件-重大资产损失'}, {'value': '事件-高层死亡', 'label': '事件-高层死亡'}, {'value': '事件-股权质押', 'label': '事件-股权质押'}, {'value': '事件-股权冻结', 'label': '事件-股权冻结'}, {'value': '事件-破产清算', 'label': '事件-破产清算'}]
     }
   },
   methods: {
+    keyNode(){
+      console.log(this.keyNodeType)
+        if (!(/^[0-9]+$/.test(this.num))) alert("请输入非负整数！");
+        else {
+          let options={
+            text:'请稍等'
+          }
+          let loadingInstance = Loading.service(options);
+         http.get(
+        '/graph/key_nodes/?type=' + this.keyNodeType + '&num=' + this.num).then((res)=>{
+            let get_data=res.data
+             this.$cy.nodes().removeClass('key_node');
+           let data = get_data.data.top;
+             for (let j = 0; j < data.length; j++) {
+               //cy.$('#'+data[j]).removeClass("light-off");
+               this.$cy.$('#' + data[j]).addClass('key_node');
+             }
+             loadingInstance.close()
+             //表格信息
+             this.keyNodeTable = get_data.data.info
+
+           })
+        }
+      },
+
+    onSubmit(){
+      console.log(this.typeSelect)
+      let input_label = this.typeSelect
+      let name_list = [];
+      this.$cy.nodes().filter(function (ele) {
+        if (ele.data('label') == input_label)
+          name_list.push(ele.data('id'))
+      });
+
+      let name_str = "";
+
+      for (let j = 0; j < name_list.length - 1; j++) {
+        name_str = name_str + name_list[j] + ",";
+      }
+      name_str = name_str + name_list[name_list.length - 1]
+
+      let options={
+        text:'请稍等'
+      }
+      let loadingInstance = Loading.service(options);
+
+      http.get('/graph/expand/?name=' + name_str + '&label=' + input_label).then((res)=>{
+        let get_data=res.data
+
+          this.$cy.add(get_data.data['nodes'])
+            this.$cy.add(get_data.data['edges'])
+
+          if (this.search_memory.length === 0 || this.mindate === "" || this.maxdate === "") {
+            this.mindate = get_data.data['mindate']
+            this.maxdate = get_data.data['maxdate']
+          }
+          else {
+            if (this.mindate > get_data.data['mindate'] && get_data.data['mindate'] !== "") this.mindate = get_data.data['mindate']
+            if (this.maxdate < get_data.data['maxdate'] && get_data.data['maxdate'] !== "") this.maxdate = get_data.data['maxdate']
+          }
+
+          var layout = this.$cy.layout({
+            name: 'euler',
+            randomize: true,
+            animate: false,
+          });
+          layout.run();
+
+          if (get_data.data['id'] !== "") {
+            for (let h = 0; h < get_data.data['id'].length; h++)
+              this.$cy.$('#' + get_data.data['id'][h]).addClass("search_node");
+          }
+
+          loadingInstance.close()
+          //时间轴
+          document.getElementById("timebrush_div").innerHTML = "";
+          var margin = { top: -12, right: 27, bottom: 21, left: 0 },
+              width = document.all.graph.offsetWidth,
+              height = 55 - margin.top - margin.bottom;
+
+          this.x = d3.scaleTime()
+              .domain([new Date(this.mindate), new Date(this.maxdate) - 1])
+              .rangeRound([0, width]);
+
+          let svg = d3.select("#timebrush_div").append("svg")
+              .attr("width", width + margin.left + margin.right) //width + margin.left + margin.right
+              .attr("height", height + margin.top + margin.bottom)  // height + margin.top + margin.bottom
+              .append("g")
+              .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+          svg.append("g")
+              .attr("class", "axis axis--x")
+              .attr("transform", "translate(0," + height + ")")
+              .call(d3.axisBottom(this.x)
+                  .ticks(d3.timeYear)
+                  .tickPadding(0))
+              .attr("text-anchor", null)
+              .selectAll("text")
+              .attr("fill", "#ef5b9c")
+              .attr("x", 0);
+
+          svg.append("g")
+              .attr("class", "brush")
+              .call(d3.brushX()
+                  .extent([[0, 0], [width, height + 30]])
+                  //.on("start",brushstart)
+                  .on("brush", this.brushmove));
+          // .on("end",brushended));
+
+        },
+        ).catch((error)=>{
+          loadingInstance.close()
+        console.log(error)
+        alert('查询失败！')
+      })
+
+    },
      lightOn(ele) {
       this.$cy.startBatch();
        this.$cy.batch(() => {
@@ -669,6 +779,11 @@ export default {
     },
 
     findNode(content) {
+      let options={
+        text:'请稍等'
+      }
+      let loadingInstance = Loading.service(options);
+
       http.get('/graph/search/?name=' + content,
           // {
           //  name:content
@@ -1065,6 +1180,7 @@ export default {
               })
 
         })
+        loadingInstance.close()
         for(let j=0;j<graphData['id'].length; j++)
         {
           this.$cy.$('#'+graphData['id'][j]).addClass("search_node");
@@ -1084,16 +1200,16 @@ export default {
           evt.target.removeClass('mouse_xianshi_label_edge');
         });
         this.$cy.on('tap', 'node', function (d) {
-          if (d.target.data('label') != "合并节点") {
+          if (d.target.data('label') !== "合并节点") {
             let node_info = '';
             for (let key in d.target.data()) {
-              if (key == 'id') {
+              if (key === 'id') {
                 node_info = node_info + 'ID' + ':' + d.target.data()[key] + '<br>';
-              } else if (key == 'label') {
+              } else if (key === 'label') {
                 node_info = node_info + '类型' + ':' + d.target.data()[key] + '<br>';
-              } else if (key == 'name') {
+              } else if (key === 'name') {
                 node_info = node_info + '名称' + ':' + d.target.data()[key] + '<br>';
-              } else if (key == 'w') {
+              } else if (key === 'w') {
                 node_info = node_info + '权重' + ':' + d.target.data()[key] + '<br>';
               } else node_info = node_info + key + ':' + d.target.data()[key] + '<br>';
             }
@@ -1508,115 +1624,8 @@ export default {
         }
       }
     },
-    expandNode () {
 
-      var input_label = document.getElementById('input_label').value;
-      var name_list = [];
-      cy.nodes().filter(function (ele) {
-        if(ele.data('label')==input_label)
-          name_list.push(ele.data('id'))
-      });
-
-      var name_str = "";
-
-      for (var j=0;j<name_list.length-1;j++)
-      {
-        name_str = name_str + name_list[j] + ",";
-      }
-      name_str = name_str + name_list[name_list.length-1]
-
-      document.getElementById('fade').style.display='block';
-      document.getElementById('fade').innerText="正在加载数据，请稍等...";
-
-      $.ajax({
-        url:'http://106.12.162.199:5008/graph/expand/?name='+ name_str + '&label=' + input_label,
-        type: 'get',
-        async:true,
-        success: function (get_data) {
-
-          this.$cy.add(get_data.data['nodes'])
-          this.$cy.add(get_data.data['edges'])
-
-          if( this.search_memory.length ===0 || this.mindate==="" || this.maxdate==="" )
-          {
-            this.mindate = get_data.data['mindate']
-            this.maxdate = get_data.data['maxdate']
-          }
-          else
-          {
-            if(mindate > get_data.data['mindate'] && get_data.data['mindate']!="") mindate = get_data.data['mindate']
-            if(maxdate < get_data.data['maxdate'] && get_data.data['maxdate']!="") maxdate = get_data.data['maxdate']
-          }
-
-          var layout = cy.layout({
-            name: 'euler',
-            randomize: true,
-            animate: false,
-          });
-          layout.run();
-
-          if(get_data.data['id']!="")
-          {
-            for (var h=0;h<get_data.data['id'].length;h++)
-              cy.$('#'+get_data.data['id'][h]).addClass("search_node");
-          }
-
-          document.getElementById('fade').innerText="";
-          document.getElementById('fade').style.display='none'
-
-
-          //时间轴
-          document.getElementById("timebrush_div").innerHTML="";
-          var margin = {top: -12, right: 27, bottom: 21, left: 0},
-              width = document.all.cy.offsetWidth,
-              height = 55 - margin.top - margin.bottom;
-
-          x = d3.scaleTime()
-              .domain([new Date(mindate), new Date(maxdate) - 1])
-              .rangeRound([0, width]);
-
-          svg = d3.select("#timebrush_div").append("svg")
-              .attr("width", width + margin.left + margin.right) //width + margin.left + margin.right
-              .attr("height", height + margin.top + margin.bottom)  // height + margin.top + margin.bottom
-              .append("g")
-              .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-          svg.append("g")
-              .attr("class", "axis axis--x")
-              .attr("transform", "translate(0," + height + ")")
-              .call(d3.axisBottom(x)
-                  .ticks(d3.timeYear)
-                  .tickPadding(0))
-              .attr("text-anchor", null)
-              .selectAll("text")
-              .attr("fill","#ef5b9c")
-              .attr("x", 0);
-
-          svg.append("g")
-              .attr("class", "brush")
-              .call(d3.brushX()
-                  .extent([[0, 0], [width, height+30]])
-                  //.on("start",brushstart)
-                  .on("brush",brushmove));
-          // .on("end",brushended));
-
-        },
-        error:function () {
-          //关闭阴影 div
-          document.getElementById('fade').innerText="";
-          document.getElementById('fade').style.display='none'
-          alert("查询失败！")
-        }
-      });
-
-
-    },
-
-
-
-    },
-
-
+  },
 
 
   mounted() {

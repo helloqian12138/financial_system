@@ -30,7 +30,7 @@
 
 <!--    关联实体弹窗-->
     <el-dialog title="关联实体信息" :visible.sync="relationDialog" width="70%" >
-        <el-table :data="relationData" :header-cell-style="{background: 'rgba(242, 242, 242, 0.654901960784314)'}"
+        <el-table :data="relationData.slice((currentPage-1)*pageSize,currentPage*pageSize)" :header-cell-style="{background: 'rgba(242, 242, 242, 0.654901960784314)'}"
                   border
                   stripe
                   style="width: 100%">          <!-- style="width: 40%"               height="215"  -->
@@ -55,12 +55,45 @@
               width="80">
           </el-table-column>
         </el-table>
+
+
+      <!--      分页-->
+      <div class="block" style="margin-top:15px;">
+        <el-pagination align='center' @size-change="handleSizeChange" @current-change="handleCurrentChange"
+                       :current-page="currentPage"
+
+                       :page-size="pageSize"
+                       layout="total, sizes, prev, pager, next, jumper"
+                       :total="relationData.length">
+        </el-pagination>
+      </div>
+
       <div class="flex-charts">
         <div ref="relationChart" style="height:300px;width:1000px; border: 1px solid #e0e0e0;margin:20px"></div>
       </div>
 
     </el-dialog>
 
+
+<!--    邻居统计弹窗-->
+    <el-dialog title="关联实体信息" :visible.sync="neighborDialog" width="70%" >
+
+<!--      <emphasized-text :emphasized-text="'邻居数' numNeighbors"></emphasized-text>-->
+      <div>
+        <p >邻居总数：{{numNeighbors}}</p>
+        <p >边总数：{{numEdge}}</p>
+        <span>类型统计：</span>
+        <span v-for="label in neighborLabel" :key="index">
+            {{ label }}
+      </span>
+
+      </div>
+
+
+        <div ref="neighborChart" style="height:300px;width:1000px; border: 1px solid #e0e0e0;margin:20px"></div>
+
+
+    </el-dialog>
   <div class="graph" ref="graph" id="graph" ></div>
 <!--    <div id="hovertip" position: absolute; ></div>-->
 <!--    <div id="timebrush_div" style="z-index: 999;position: absolute;margin-top: -35px;width:100%;bottom: 20px" class="test1"></div>-->
@@ -284,6 +317,7 @@ import euler from "cytoscape-euler"
 import expandCollapse from "cytoscape-expand-collapse"
 import * as d3 from "d3"
 import BubbleSets from "cytoscape-bubblesets";
+import EmphasizedText from '../components/EmphasizedText.vue';
 // cytoscape.use(euler)
 // cytoscape.use(expandCollapse)
 // cytoscape.use(cxtmenu)
@@ -291,6 +325,9 @@ export default {
   name: "graphViewV4",
   data() {
     return {
+      currentPage: 1, // 当前页码
+      total: 20, // 总条数
+      pageSize: 10, // 每页的数据条数
       svg:null,
       parentSide:null,
       timebrustStart:null,
@@ -303,17 +340,22 @@ export default {
         {color: '#6f7ad3', percentage: 100}
       ],
       percentage:0,
+      neighborDialog:false,
       relationData:[],
       relationDialog:false,
       checkAllEdges: false,
       checkAllNodes: false,
       checkedCities: ['上海', '北京'],
+      edgeData:[],
       edges:[' 股东', ' 流通股东', ' 股权质押', ' 股权赎回', ' 发行', ' 法律顾问', ' 财务审计', ' 战略合作', ' 竞争', ' 业务链', ' 监管', ' 成员', ' 保荐承销', ' 担保', ' 法人代表', ' 客户', ' 高管', ' 购买', ' 属于', ' 投资', ' 委托管理', ' 管理', ' 原材料', ' 补充', ' 注册', ' 设立', ' 交易', ' 经营', ' 毕业', ' 位于', ' 同学', ' 亲属', ' 同乡', ' 好友', ' 出生', ' 工作', ' 任职', ' 合作'],
       edgesTypes: [' 股东', ' 流通股东', ' 股权质押', ' 股权赎回', ' 发行', ' 法律顾问', ' 财务审计', ' 战略合作', ' 竞争', ' 业务链', ' 监管', ' 成员', ' 保荐承销', ' 担保', ' 法人代表', ' 客户', ' 高管', ' 购买', ' 属于', ' 投资', ' 委托管理', ' 管理', ' 原材料', ' 补充', ' 注册', ' 设立', ' 交易', ' 经营', ' 毕业', ' 位于', ' 同学', ' 亲属', ' 同乡', ' 好友', ' 出生', ' 工作', ' 任职', ' 合作'],
       checkedEdges:[],
       nodes:[ ' 上市公司', ' 上市公司-实体企业', ' 上市公司-金融机构', ' 上市公司-金融机构-银行', ' 上市公司-金融机构-证券', ' 上市公司-金融机构-保险', ' 上市公司-金融机构-信托', ' 上市公司-金融机构-基金', ' 上市公司-金融机构-基金-公募基金', ' 上市公司-金融机构-基金-私募基金', ' 上市公司-金融机构-其他金融机构', ' 非上市公司其他公司', ' 非上市公司-实体企业', ' 非上市公司-金融机构', ' 非上市公司-金融机构-银行', ' 非上市公司-金融机构-证券', ' 非上市公司-金融机构-保险', ' 非上市公司-金融机构-信托', ' 非上市公司-金融机构-基金', ' 非上市公司-金融机构-基金-公募基金', ' 非上市公司-金融机构-基金-私募基金', ' 非上市公司-金融机构-其他金融机构', ' 非上市公司其他公司',  ' 人物-普通人物', ' 人物-基金经理', ' 人物-投资经理', ' 机构-国务院国有资产监督管理委员会',  ' 监管机构-银保监会', ' 监管机构-证监会', ' 监管机构-人民银行', ' 监管机构-食药监局', ' 监管机构-网信', ' 监管机构-工信', ' 监管机构-行业协会', ' 交易所', ' 板块',  ' 地点-国家', '地点-省', '地点-县/区', ' 地点-市',  ' 行业-门类', ' 行业-大类', ' 行业-中类',  ' 产品-一般产品', ' 产品-服务产品',  ' 产品-金融产品-股票', ' 产品-金融产品-债券', ' 产品-金融产品-基金', ' 产品-金融产品-基金--公募', ' 产品-金融产品-基金--私募', ' 产品-金融产品-基金--REITS', ' 产品-金融产品-信托', ' 产品-金融产品-其他', ' 学校', '时间','事件-股东减持','事件-股东增持','事件-重大安全事故','事件-重大对外赔付',' 事件-重大资产损失','事件-高层死亡',' 事件-股权质押',' 事件-股权冻结','事件-破产清算','报道媒体',' 未知'],
       nodeTypes:[ ' 上市公司', ' 上市公司-实体企业', ' 上市公司-金融机构', ' 上市公司-金融机构-银行', ' 上市公司-金融机构-证券', ' 上市公司-金融机构-保险', ' 上市公司-金融机构-信托', ' 上市公司-金融机构-基金', ' 上市公司-金融机构-基金-公募基金', ' 上市公司-金融机构-基金-私募基金', ' 上市公司-金融机构-其他金融机构', ' 非上市公司其他公司', ' 非上市公司-实体企业', ' 非上市公司-金融机构', ' 非上市公司-金融机构-银行', ' 非上市公司-金融机构-证券', ' 非上市公司-金融机构-保险', ' 非上市公司-金融机构-信托', ' 非上市公司-金融机构-基金', ' 非上市公司-金融机构-基金-公募基金', ' 非上市公司-金融机构-基金-私募基金', ' 非上市公司-金融机构-其他金融机构', ' 非上市公司其他公司',  ' 人物-普通人物', ' 人物-基金经理', ' 人物-投资经理', ' 机构-国务院国有资产监督管理委员会',  ' 监管机构-银保监会', ' 监管机构-证监会', ' 监管机构-人民银行', ' 监管机构-食药监局', ' 监管机构-网信', ' 监管机构-工信', ' 监管机构-行业协会', ' 交易所', ' 板块',  ' 地点-国家', '地点-省', '地点-县/区', ' 地点-市',  ' 行业-门类', ' 行业-大类', ' 行业-中类',  ' 产品-一般产品', ' 产品-服务产品',  ' 产品-金融产品-股票', ' 产品-金融产品-债券', ' 产品-金融产品-基金', ' 产品-金融产品-基金--公募', ' 产品-金融产品-基金--私募', ' 产品-金融产品-基金--REITS', ' 产品-金融产品-信托', ' 产品-金融产品-其他', ' 学校', '时间','事件-股东减持','事件-股东增持','事件-重大安全事故','事件-重大对外赔付',' 事件-重大资产损失','事件-高层死亡',' 事件-股权质押',' 事件-股权冻结','事件-破产清算','报道媒体',' 未知'],
       checkedNodes:[],
+      numEdge:0,
+      neighborLabel:0,
+      numNeighbors:0,
       edgeIndeterminate: true,
       nodeIndeterminate: true,
       shetuan_paths:[],
@@ -332,6 +374,8 @@ export default {
       startID:null,
       endID:null,
 
+      hideClickCount:{},
+      nodeClickCount:{},
       x:null,
       brush:null,
       search_memory:[],
@@ -345,7 +389,20 @@ export default {
       type :[{'value': '板块', 'label': '板块'}, {'value': '行业-门类', 'label': '行业-门类'}, {'value': '行业-大类', 'label': '行业-大类'}, {'value': '地点-市', 'label': '地点-市'}, {'value': '地点-国家', 'label': '地点-国家'}, {'value': '上市公司-金融机构-其他金融机构', 'label': '上市公司-金融机构-其他金融机构'}, {'value': '上市公司-金融机构-证券', 'label': '上市公司-金融机构-证券'}, {'value': '上市公司-金融机构-银行', 'label': '上市公司-金融机构-银行'}, {'value': '上市公司-实体企业', 'label': '上市公司-实体企业'}, {'value': '上市公司-金融机构-保险', 'label': '上市公司-金融机构-保险'}, {'value': '上市公司-金融机构-基金-私募基金', 'label': '上市公司-金融机构-基金-私募基金'}, {'value': '上市公司-金融机构-基金-公募基金', 'label': '上市公司-金融机构-基金-公募基金'}, {'value': '上市公司-金融机构-信托', 'label': '上市公司-金融机构-信托'}, {'value': '交易所', 'label': '交易所'}, {'value': '人物-基金经理', 'label': '人物-基金经理'}, {'value': '人物-普通人物', 'label': '人物-普通人物'}, {'value': '产品-金融产品-债券', 'label': '产品-金融产品-债券'}, {'value': '产品-金融产品-基金--私募', 'label': '产品-金融产品-基金--私募'}, {'value': '产品-金融产品-基金--公募', 'label': '产品-金融产品-基金--公募'}, {'value': '产品-金融产品-基金—REITS', 'label': '产品-金融产品-基金—REITS'}, {'value': '产品-金融产品-股票', 'label': '产品-金融产品-股票'}, {'value': '地点-省', 'label': '地点-省'}, {'value': '监管机构-银保监会（局）', 'label': '监管机构-银保监会（局）'}, {'value': '监管机构-人民银行（分行）', 'label': '监管机构-人民银行（分行）'}, {'value': '监管机构-行业协会', 'label': '监管机构-行业协会'}, {'value': '监管机构-证监会（局）', 'label': '监管机构-证监会（局）'}, {'value': '学校', 'label': '学校'}, {'value': '非上市公司-金融机构-证券', 'label': '非上市公司-金融机构-证券'}, {'value': '非上市公司-金融机构-银行', 'label': '非上市公司-金融机构-银行'}, {'value': '非上市公司-实体企业', 'label': '非上市公司-实体企业'}, {'value': '非上市公司-金融机构-保险', 'label': '非上市公司-金融机构-保险'}, {'value': '非上市公司-金融机构-其他金融机构', 'label': '非上市公司-金融机构-其他金融机构'}, {'value': '非上市公司-金融机构-基金-公募基金', 'label': '非上市公司-金融机构-基金-公募基金'}, {'value': '非上市公司-金融机构-信托', 'label': '非上市公司-金融机构-信托'}, {'value': '地点-县/区', 'label': '地点-县/区'}, {'value': '非上市公司其他公司', 'label': '非上市公司其他公司'}, {'value': '未知', 'label': '未知'}, {'value': '组织机构', 'label': '组织机构'}, {'value': '产品-金融产品-其他', 'label': '产品-金融产品-其他'}, {'value': '时间', 'label': '时间'}, {'value': '事件-股东减持', 'label': '事件-股东减持'}, {'value': '事件-股东增持', 'label': '事件-股东增持'}, {'value': '报道媒体', 'label': '报道媒体'}, {'value': '事件-重大安全事故', 'label': '事件-重大安全事故'}, {'value': '事件-重大对外赔付', 'label': '事件-重大对外赔付'}, {'value': '事件-重大资产损失', 'label': '事件-重大资产损失'}, {'value': '事件-高层死亡', 'label': '事件-高层死亡'}, {'value': '事件-股权质押', 'label': '事件-股权质押'}, {'value': '事件-股权冻结', 'label': '事件-股权冻结'}, {'value': '事件-破产清算', 'label': '事件-破产清算'}]
     }
   },
+  components: {
+    EmphasizedText
+  },
   methods: {
+    handleSizeChange(val) {
+      // console.log(`每页 ${val} 条`);
+      this.currentPage = 1;
+      this.pageSize = val;
+    },
+    //当前页改变时触发 跳转其他页
+    handleCurrentChange(val) {
+      // console.log(`当前页: ${val}`);
+      this.currentPage = val;
+    },
     clearAll(){
 
       this.$cy.elements().remove()
@@ -647,6 +704,7 @@ export default {
 
       http.get('/graph/expand/?name=' + name_str + '&label=' + input_label).then((res)=>{
         let get_data=res.data
+        this.edgeData.push(...get_data.data['edges'])
 
           this.$cy.add(get_data.data['nodes'])
             this.$cy.add(get_data.data['edges'])
@@ -770,6 +828,7 @@ export default {
       //console.log(get_data)
       // console.log(mindate, maxdate)
       let tmp=response.data.data
+      this.edgeData.push(...tmp['edges'])
       that.$cy.add(tmp['nodes'])
       that.$cy.add(tmp['edges'])
 
@@ -1297,10 +1356,15 @@ export default {
             series:seriesData
           }
           option && myChart.setOption(option);
-      console.log(option)
+
     })
     },
     entity_relationship(id){
+      this.$message({
+        showClose: true,
+        message: '请稍等',
+        type: 'info'
+      })
       http.get('/graph/get_current_similarity/?company_id=' + id,
       ).then((response) => {
         this.relationData.length=0
@@ -1326,7 +1390,7 @@ export default {
               seriesData.push({name:name[i],type:'line',data:tmp})
             }
               this.relationData= response.data.data
-            console.log(seriesData)
+            // console.log(seriesData)
               this.relationChart(name,seriesData,time)
             // this.relationDialog = true
           })
@@ -1341,6 +1405,201 @@ export default {
 
     },
 
+    generateMonthlyIntervals(startDate, endDate) {
+  const intervals = [];
+  let currentDate = new Date(startDate);
+  while (currentDate <= endDate) {
+    intervals.push({
+      date: new Date(currentDate)
+    });
+    // 移动到下一个月的第一天
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    currentDate.setDate(1); // 确保是每个月的第一天
+  }
+      // console.log(intervals,startDate)
+  return intervals;
+},
+     countNeighborsOverTime(edges, node, timeIntervals) {
+      let totalNeigh=new Set()
+       let numEdges=0
+
+      let neighborCounts = timeIntervals.map(interval => ({
+    date: interval.date,
+    sourceCount: 0,
+    targetCount: 0,
+    // totalCount: 0,
+    sourceNeighbors: new Set(),
+    targetNeighbors: new Set()
+  }));
+       console.log(timeIntervals)
+        edges.forEach(edge => {
+
+    if (edge['data'].source === node || edge['data'].target === node) {
+      numEdges++
+      for (let i = 0; i < timeIntervals.length; i++) {
+        if (!totalNeigh.has(edge['data'].source) )
+          totalNeigh.add(edge['data'].source)
+        if (!totalNeigh.has(edge['data'].target) )
+          totalNeigh.add(edge['data'].target)
+        const interval = timeIntervals[i];
+        if (interval.date >= new Date(edge['data']['开始日期']) && interval.date <= new Date(edge['data']['结束日期'])) {
+          const { date, sourceNeighbors, targetNeighbors } = neighborCounts[i];
+
+          if (edge['data'].source === node) {
+            if (!sourceNeighbors.has(edge['data'].target)) {
+              sourceNeighbors.add(edge['data'].target);
+              neighborCounts[i].sourceCount++;
+            }
+          }
+
+          if (edge['data'].target === node) {
+            if (!targetNeighbors.has(edge['data'].source)) {
+              targetNeighbors.add(edge['data'].source);
+              neighborCounts[i].targetCount++;
+            }
+          }
+
+          neighborCounts[i].totalCount = sourceNeighbors.size + targetNeighbors.size;
+        }
+      }
+    }
+  })
+      // 将 Set 转换为数组，以便于后续处理
+       let start = 0;
+       let end = neighborCounts.length - 1;
+      neighborCounts.forEach(count => {
+        count.sourceNeighbors = Array.from(count.sourceNeighbors);
+        count.targetNeighbors = Array.from(count.targetNeighbors);
+      });
+
+       // 找到第一个不为零的元素
+       while (start < neighborCounts.length && (neighborCounts[start].sourceCount === 0 && neighborCounts[start].targetCount === 0)) {
+         start++;
+       }
+
+       // 找到最后一个不为零的元素
+       while (end >= 0 && (neighborCounts[end].sourceCount === 0 && neighborCounts[end].targetCount === 0)) {
+         end--;
+       }
+
+       // 截取从第一个不为零的元素到最后一个不为零的元素
+       if (start > end) {
+         return [[],numEdges,totalNeigh.size-1]; // 如果没有不为零的元素，返回空数组
+       }
+        else
+       {
+         const sourceNeighbors = [];
+         const targetNeighbors = [];
+         const total=[];
+         const dates = [];
+         neighborCounts=neighborCounts.slice(start, end + 1)
+         neighborCounts.forEach(item => {
+           dates.push(item.date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'short' }));
+           sourceNeighbors.push(item.sourceCount);
+           targetNeighbors.push(item.targetCount);
+           total.push(item.sourceCount+item.targetCount)
+         });
+         return [[dates,sourceNeighbors,targetNeighbors,total],numEdges,totalNeigh.size-1];
+       }
+
+     },
+
+      analyse_neigh( id){
+      // 获取该节点的所有邻居
+      const neighborhood = this.$cy.$('#' + id).neighborhood();
+        // console.log(neighborhood)
+      // 遍历邻居集合，收集邻居节点的信息
+      const neighborsInfo = new Set();
+
+      neighborhood.forEach(neighbor => {
+        if (neighbor.isNode()) {  // 确保我们只处理节点，而不是边
+          const neighborData = neighbor.data('label').split('-');
+          if (neighborData.length>0){
+            const lastLabel=neighborData[neighborData.length-1]
+            // 收集你需要的邻居节点的数据
+            if(!neighborsInfo.has(lastLabel) )
+              neighborsInfo.add(lastLabel)
+          }
+
+        }
+      });
+
+      let minDate= this.edgeData[0]['data']['开始日期']
+      let maxDate= this.edgeData[0]['data']['结束日期']
+
+      this.edgeData.forEach(edge=>{
+
+        if (edge['data']['开始日期']!=='未知' && edge['data']['开始日期']<minDate)
+          minDate=edge['data']['开始日期']
+        if (edge['data']['开始日期']!=='未知' && edge['data']['结束日期']>maxDate)
+          maxDate=edge['data']['结束日期']
+      })
+        minDate=minDate==='未知'? this.mindate: minDate
+        maxDate=maxDate==='未知'? this.maxdate: maxDate
+        console.log(this.edgeData.length)
+      const timeIntervals = this.generateMonthlyIntervals(new Date(minDate), new Date(maxDate));
+      const neighborCounts= this.countNeighborsOverTime(this.edgeData, id, timeIntervals);
+
+        this.numEdge=neighborCounts[1]
+        this.neighborLabel=neighborsInfo
+
+        this.numNeighbors=neighborCounts[2]
+        // console.log({'detail':neighborCounts[0],'numEdge':neighborCounts[1],'label':neighborsInfo,'numNighbors':neighborCounts[2]})
+    this.initNeighborChart(neighborCounts[0])
+        this.neighborDialog=true
+    },
+    initNeighborChart(neighborCounts){
+      console.log(neighborCounts)
+      this.$nextTick(()=>{
+            let myChart = this.$echarts.init(this.$refs.neighborChart);
+            let option= {
+              title: {
+                text: '邻居节点数量'
+              },
+              tooltip: {
+                trigger: 'axis'
+              },
+              legend: {
+                data: ['入度邻居', '出度邻居','总计']
+              },
+              grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+              },
+              xAxis: {
+                type: 'category',
+                boundaryGap: false,
+                data: neighborCounts[0]
+              },
+              yAxis: {
+                type: 'value'
+              },
+              series:  [
+              {
+                name: '入度邻居',
+                type: 'line',
+                // stack: 'Total',
+                data: neighborCounts[1]
+              },
+              {
+                name: '出度邻居',
+                type: 'line',
+                // stack: 'Total',
+                data: neighborCounts[2]
+              },
+                {
+                  name: '总计',
+                  type: 'line',
+                  // stack: 'Total',
+                  data: neighborCounts[3]
+                }
+              ]
+            }
+            option && myChart.setOption(option);
+    })
+    },
     xianshi_neigh(id){
       this.$cy.$('#'+id).neighborhood().show();
   // cy.nodes().filter(function( element, i ){return element.data('id') == id}).neighborhood().nodes().show();
@@ -1460,7 +1719,9 @@ export default {
           //  name:content
           //  }
       ).then((response) => {
+
         let graphData = response.data
+        this.edgeData=graphData.edges
         let that = this
         if (!cytoscape().cxtmenu) {
           cytoscape.use(cxtmenu)
@@ -1973,24 +2234,48 @@ export default {
               },
               {
                 fillColor: '#33a3dc', // optional: custom background color for item
-                content: '<span style="font-size: 7px">显示邻居</span>', // html/text content to be displayed in the menu
+                content: '<span style="font-size: 7px">邻居统计</span>', // html/text content to be displayed in the menu
                 // content: '显示邻居',
                 contentStyle: {}, // css key:value pairs to set the command's css in js if you want
-                select: (ele) =>this.xianshi_neigh(ele.id()),
+                select: (ele) =>this.analyse_neigh(ele.id()),
                 enabled: true, // whether the command is selectable
               },
               {
                 fillColor: '#73b9a2', // optional: custom background color for item
-                content: '<span style="font-size: 7px">隐藏邻居</span>', // html/text content to be displayed in the menu
+                content: '<span style="font-size: 7px">隐藏/显示邻居</span>', // html/text content to be displayed in the menu
                 contentStyle: {}, // css key:value pairs to set the command's css in js if you want
-                select: (ele) => this.yincang_neigh(ele.id()),
+                select: (ele) => {
+                  if (!this.hideClickCount[ele.id]) {
+                    this.hideClickCount[ele.id] = 0;
+                  }
+                  if (this.hideClickCount[ele.id]%2===0)
+                    this.yincang_neigh(ele.id())
+                  else
+                    this.xianshi_neigh(ele.id())
+                  this.hideClickCount[ele.id]++
+
+
+
+                },
                 enabled: true, // whether the command is selectable
               },
               {
                 fillColor: '#f7acbc', // optional: custom background color for item
                 content: '<span style="font-size: 7px">高亮邻居</span>', // html/text content to be displayed in the menu
                 // contentStyle: {}, // css key:value pairs to set the command's css in js if you want
-                select: (ele) => this.lightOn([ele.id()]),
+
+                select: (ele) => {
+                  if (!this.nodeClickCount[ele.id]) {
+                    this.nodeClickCount[ele.id] = 0;
+                  }
+                  if (this.nodeClickCount[ele.id]%2===0)
+                  this.lightOn([ele.id()])
+                  else
+                    this.lightOff()
+                  this.nodeClickCount[ele.id]++
+                },
+
+
                 enabled: true, // whether the command is selectable
               },
               {
@@ -2374,7 +2659,11 @@ export default {
 </script>
 
 <style lang="less" scoped>
-
+//.fontClass{
+//  font-family: "微软雅黑";
+//  color: #02A7F0;
+//
+//},
 .info{
   position: fixed;
   //margin-top: -35px;

@@ -627,31 +627,34 @@ tableLabel_long: {
         this.formInline2.radarData2.length=0
         this.tableData_2_1.length=0
       }
-      http.get(
+      const request1= http.get(
           "/health/health_search/",
           {params:{
               name: this.formInline2.company1,//公司名
               date: this.formInline2.quarter_year,//时间（年份+季度）
-            }}).then(response => {
-            this.formInline2.tableData1= response.data.data
-            if (this.formInline2.tableData1['等级']===1)
-              this.formInline2.tableData1.level='严重'
-            else if (this.formInline2.tableData1['等级']===2)
-              this.formInline2.tableData1.level='中等'
-            else
-              this.formInline2.tableData1.level='良好'
-            this.formInline2.tableData1.name=this.formInline2.company1
-            this.tableData_2_1.push( this.formInline2.tableData1)
-        for (let i in response.data.data){
-          if (i !=='健康指数' && i !=='等级' && typeof response.data.data[i]==='number') this.formInline2.radarData1.push(response.data.data[i])}
-      },
-      http.get(
-          "/health/health_search/",
+            }})
+      const request2=http.get("/health/health_search/",
           {params:{
               name: this.formInline2.company2,//公司名
               date: this.formInline2.quarter_year,//时间（年份+季度）
-            }}).then(response => {
-        this.formInline2.tableData2= response.data.data
+            }})
+      Promise.all([request1,request2]).then((res)=>{
+        const response1=res[0]
+        const response2=res[1]
+            this.formInline2.tableData1= response1.data.data
+        if (this.formInline2.tableData1['等级']===1)
+          this.formInline2.tableData1.level='严重'
+        else if (this.formInline2.tableData1['等级']===2)
+          this.formInline2.tableData1.level='中等'
+        else
+          this.formInline2.tableData1.level='良好'
+        this.formInline2.tableData1.name=this.formInline2.company1
+        this.tableData_2_1.push( this.formInline2.tableData1)
+        for (let i in response1.data.data){
+          if (i !=='健康指数' && i !=='等级' && typeof response1.data.data[i]==='number') this.formInline2.radarData1.push(response1.data.data[i])}
+
+
+        this.formInline2.tableData2= response2.data.data
         if (this.formInline2.tableData2['等级']===1)
           this.formInline2.tableData2.level='严重'
         else if (this.formInline2.tableData2['等级']===2)
@@ -660,14 +663,14 @@ tableLabel_long: {
           this.formInline2.tableData2.level='良好'
         // console.log(response)
         this.formInline2.tableData2.name=this.formInline2.company2
-        for (let i in response.data.data)
-          if (i !=='健康指数' && i !=='等级' && typeof response.data.data[i]==='number') this.formInline2.radarData2.push(response.data.data[i])
+        for (let i in response2.data.data)
+          if (i !=='健康指数' && i !=='等级' && typeof response2.data.data[i]==='number') this.formInline2.radarData2.push(response2.data.data[i])
         console.log(this.formInline2.radarData2)
         console.log(this.formInline2.radarData1)
-        const echarts1 = echarts.init(this.$refs.echarts_1)
 
         this.tableData_2_1.push( this.formInline2.tableData2)
-        console.log(this.tableData_2_1)
+      }).then(()=>{
+        const echarts1 = echarts.init(this.$refs.echarts_1)
         const option1 = {
           // 右上角存图
           toolbox: {
@@ -716,7 +719,6 @@ tableLabel_long: {
         };
         echarts1.setOption(option1)
       })
-      )
 
 
     },

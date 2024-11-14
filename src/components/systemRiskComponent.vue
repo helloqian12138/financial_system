@@ -276,12 +276,15 @@ props:{
           max:2,
           type: 'value',
           show:false,
-
+          // boundaryGap: false,
           // gridIndex: 1
         },
         series: {
           type: 'boxplot',
           boxWidth : [2, 10],
+          itemStyle: {
+            clip: true
+          },
           data:[{value: this.future,} ],
           // 确保箱型图显示在折线图之后
           // zlevel: 3,

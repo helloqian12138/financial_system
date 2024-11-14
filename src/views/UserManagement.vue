@@ -203,7 +203,6 @@
       <div class="block" style="margin-top:15px;">
         <el-pagination align='center' @size-change="handleSizeChange" @current-change="handleCurrentChange"
                        :current-page="currentPage"
-
                        :page-size="pageSize"
                        layout="total, sizes, prev, pager, next, jumper"
                        :total="activityData.length">
@@ -262,6 +261,7 @@ export default {
   },
   data () {
     return {
+
       moduleStart:'',
       moduleEnd:'',
       start:'',

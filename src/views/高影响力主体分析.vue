@@ -127,14 +127,14 @@
                 <div class="table" style="width: 100%; float: left; overflow: hidden">
                   <el-table :data="tableData" :header-cell-style="{background: 'rgba(242, 242, 242, 0.654901960784314)'}" 
                         border  
-                        height="250" 
+                        height="350"
                         :row-style="{height:'28px'}"
                         :cell-style="{padding:'0px'}"
                         header-row-class-name="active_header"
                         header-cell-class-name="active_header"
                         cell-class-name="content_center"
                         style="width: 98%">          <!-- style="width: 40%"               height="215"  -->
-                      <el-table-column v-for='(val,key) in tableLabel' :prop="key" :label="val"  :key="key"/><!--插槽里面没有东西就可以用单标签  -->
+                      <el-table-column v-for='(val,key) in tableLabel' :prop="key" :label="val"  :key="key" sortable/><!--插槽里面没有东西就可以用单标签  -->
                       <el-table-column
                               prop="scale"
                               label="操作">
@@ -166,33 +166,33 @@
                         label="主体名称"
                         width="120">
                       </el-table-column>
-                      <el-table-column label="市场结构">
-                        <el-table-column
-                          prop="DC"
-                          label="度中心性"
-                          width="120">
-                        </el-table-column>
-                        <el-table-column
-                          prop="BC"
-                          label="介数中心性"
-                          width="120">
-                        </el-table-column>
-                        <el-table-column
-                          prop="CC"
-                          label="接近中心性"
-                          width="120">
-                        </el-table-column>
-                        <el-table-column
-                          prop="weighted-PR"
-                          label="加权PageRank"
-                          width="120">
-                        </el-table-column>
-                        <el-table-column
-                            prop="SLC"
-                            label="局部中心性"
-                            width="120">
-                        </el-table-column>
-                      </el-table-column>
+<!--                      <el-table-column label="市场结构">-->
+<!--                        <el-table-column-->
+<!--                          prop="DC"-->
+<!--                          label="度中心性"-->
+<!--                          width="120">-->
+<!--                        </el-table-column>-->
+<!--                        <el-table-column-->
+<!--                          prop="BC"-->
+<!--                          label="介数中心性"-->
+<!--                          width="120">-->
+<!--                        </el-table-column>-->
+<!--                        <el-table-column-->
+<!--                          prop="CC"-->
+<!--                          label="接近中心性"-->
+<!--                          width="120">-->
+<!--                        </el-table-column>-->
+<!--                        <el-table-column-->
+<!--                          prop="weighted-PR"-->
+<!--                          label="加权PageRank"-->
+<!--                          width="120">-->
+<!--                        </el-table-column>-->
+<!--                        <el-table-column-->
+<!--                            prop="SLC"-->
+<!--                            label="局部中心性"-->
+<!--                            width="120">-->
+<!--                        </el-table-column>-->
+<!--                      </el-table-column>-->
                         <el-table-column label="个体规模">
                           <el-table-column
                             prop="region"
@@ -640,9 +640,15 @@ import {Loading} from "element-ui";
         ],
         tableLabel: {
           comp_name: '主体名称',
+          BC:'介数中心性',
+          DC:'度中心性',
+          CC:'接近中心性',
+          weighted_PR:'加权PageRank',
+          SLC:'局部中心性',
           Total_score: '影响力综合分数',
           grade: '影响等级',
           spread_ability:'传播能力'
+
         },
         historyData:[],
         timeLis:[],

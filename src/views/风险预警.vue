@@ -300,10 +300,10 @@ components: {
       value: '上海证券交易所',
       label: '上海证券交易所'
     },
-    // {
-    //   value: '北交所',
-    //   label: '北京证券交易所'
-    // },
+    {
+      value: '北交所',
+      label: '北京证券交易所'
+    },
   ],
 
   options_exchange:[{
@@ -431,6 +431,7 @@ tableData2: [
     warning_score:'风险值',
     last_time:'上次预警时刻',
     increase:'同比',
+    counts:'预警次数'
 
   },
   // 个体
@@ -559,8 +560,8 @@ tableData2: [
           start:this.formInline1.start_date,
           end:this.formInline1.end_date,
         }}).then((res)=>{
-        this.tableData1 = eval(unescape(res.data.replace(/\\u/g, '%u')))
-        // this.tableData1=res.data
+        // this.tableData1 = eval(unescape(res.data.replace(/\\u/g, '%u')))
+        this.tableData1=res.data
       })
       http.get('/warning/region_all_risk/',{params:{
           //  不传时间默认最近半年
@@ -776,8 +777,8 @@ tableData2: [
     },
     // 详情页2
     detail2(row){
-    console.log("查看详情-个体风险预警")
-    console.log(row)//返回这一行所有的内容
+    // console.log("查看详情-个体风险预警")
+    // console.log(row)//返回这一行所有的内容
       // console.log(this.tableData2)
       this.tableData_detail_2=Array(row)
     // for(let i in this.tableData2)

@@ -1055,10 +1055,10 @@ var toolBarOnly = true;
         //    //    $('#interfaceControlFrameContainer').css('margin-left', '-' + $('#logoImage').width() / 2 + 'px');
         //    //    //$axure.player.resizeContent();
         //    //};
-        //    image.src = $axure.document.configuration.logoImagePath;
+        //    image.src_old = $axure.document.configuration.logoImagePath;
 
-        //    $('#interfaceControlFrameLogoImageContainer').html('<img id="logoImage" src="" />');
-        //    $('#logoImage').attr('src', $axure.document.configuration.logoImagePath);//.on('load', function () { $axure.player.resizeContent(); });
+        //    $('#interfaceControlFrameLogoImageContainer').html('<img id="logoImage" src_old="" />');
+        //    $('#logoImage').attr('src_old', $axure.document.configuration.logoImagePath);//.on('load', function () { $axure.player.resizeContent(); });
         //} else $('#interfaceControlFrameLogoImageContainer').hide();
 
         //if ($axure.document.configuration.logoImageCaption) {
@@ -1486,7 +1486,7 @@ var toolBarOnly = true;
                     /******* DEBUG: Allows for debugging/viewing feedback9.js in browser inspect mode ******/
                     //var hdr = document.createElement('script');
                     //hdr.type = "text/javascript"
-                    //hdr.src = '/Scripts/plugins/feedback/feedback9.js';
+                    //hdr.src_old = '/Scripts/plugins/feedback/feedback9.js';
                     //document.head.appendChild(hdr);
                 }
             }

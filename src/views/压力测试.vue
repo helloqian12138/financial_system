@@ -35,6 +35,7 @@
   <script>
   import * as echarts from "echarts"
   export default {
+    name:'pressure',
     data() {
       return {
 
@@ -77,7 +78,12 @@
             // end_date:'',
         },
           }          
-  }, 
+  },
+    computed:{
+      isLogin(){
+        return this.$store.state.isLogin
+      }
+    },
     mounted(){
           
   },

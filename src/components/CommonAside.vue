@@ -1,66 +1,84 @@
 <!-- 侧导航栏 -->
 <template>
-  <el-menu
-    default-active="1-4-1"
-    class="el-menu-vertical-demo"
-    @open="handleOpen"
-    @close="handleClose"
-    :collapse="isCollapse"
-    background-color="#000000"
-    text-color="#fff"
-    active-text-color="#ffd04b"
-    style="height:1200px">
-    <!-- style="height:auto" -->
-    <!-- <img src="/image/Logo.png" width="100%" > -->
-    <!-- <img src="/image/Logo.png" /> -->
-    <div style="display=flex;">
-      <!-- <img src="../assets/Logo.png" width="12%" style="display:inline-block;padding-right: 3px;" align="absmiddle"> -->
-      <img src="../assets/数据显示.png" width="12%" style="display:inline-block;padding-left: 1px;padding-right: 5px;" align="absmiddle">
-      <!-- align="absmiddle"让图像和文字一样高 -->
-      <h3 style="display:inline-block;" @click = "bigscreen">资本市场系统性风险平台</h3>
-      <!--  -->
-    </div>
-    
+  <div style="display=flex;">
+    <!-- <el-radio-group v-model="isCollapse" style="margin-bottom: 20px;">
+      <el-radio-button :label="false">展开</el-radio-button>
+      <el-radio-button :label="true">收起</el-radio-button>
+    </el-radio-group> -->
+
+      <el-menu
+        :default-active="$route.path"
+        class="el-menu-vertical-demo"
+        :router="true"
+        :collapse="isCollapse"
+        background-color="#000000"
+        text-color="#fff"
+        active-text-color="#ffd04b"
+        style="height:1200px">
+        <!-- style="height:auto" -->
+        <!-- :default-active="$route.path"使得在没有点击左侧导航栏时，也能根据路由转变转化颜色 -->
+        <div style="display=flex;">
+          <!-- <img src_old="../assets/Logo.png" width="12%" style="display:inline-block;padding-right: 3px;" align="absmiddle"> -->
+          <img src="../assets/数据显示.png" width="20px" style="display:inline-block;padding-left: 1px;padding-right: 5px;" align="absmiddle">
+          <!-- align="absmiddle"让图像和文字一样高 -->
+          <h3 style="display:inline-block;" @click = "bigscreen">{{ isCollapse ? '' :  '资本市场系统性风险平台'}}</h3>
+          <!--  -->
+        </div>
+
+      <!-- <el-button @click="handleMenu" icon="el-icon-menu" size="mini">bibibi</el-button> -->
 
 
-    <!-- 循环遍历所有的单导航栏 -->
-    <!-- 没有子菜单 -->
-    <el-menu-item @click='clickMenu(item)' v-for="item in nochildren" :key='item.name' :index='item.name'>   
-    <!-- : 是v-bind: -->
-      <i :class="`el-icon-${item.icon}`"></i> <!-- 图标，官网可选 -->
-      <span slot="title">{{ item.label }}</span>
-    </el-menu-item>
 
-    <!-- 有子菜单 -->
-    <el-submenu  v-for="item in hasChildren" :key='item.label' :index='item.label'><!-- index都是为了确保唯一性 -->
-        <template slot="title">
-          <i :class="`el-icon-${item.icon}`"></i>
+        <!-- 循环遍历所有的单导航栏 -->
+        <!-- 没有子菜单 -->                                               <!-- index都是为了确保唯一性,但最好设置为path，有利于根据路由跳转页面 -->
+        <el-menu-item @click='clickMenu(item)' v-for="item in nochildren" :key='item.path' :index='item.path'>
+        <!-- : 是v-bind: -->
+          <i :class="`el-icon-${item.icon}`"></i> <!-- 图标，官网可选 -->
           <span slot="title">{{ item.label }}</span>
-        </template>
-        <el-menu-item-group v-for='subItem in item.children' :key='subItem.path'>
-          <el-menu-item @click='clickMenu(subItem)' :index="subItem.path" style="padding-left: 70px;">{{subItem.label}}</el-menu-item>
-        </el-menu-item-group>
-       
-      </el-submenu>
+        </el-menu-item>
 
-  </el-menu>
+        <!-- 有子菜单 -->
+        <el-submenu  v-for="item in hasChildren" :key='item.path' :index='item.path'><!-- index都是为了确保唯一性 -->
+            <template slot="title">
+              <i :class="`el-icon-${item.icon}`"></i>
+              <span slot="title">{{ item.label }}</span>
+            </template>
+            <el-menu-item-group v-for='subItem in item.children' :key='subItem.path'>
+              <el-menu-item @click='clickMenu(subItem)' :index="subItem.path" style="padding-left: 70px;">{{subItem.label}}</el-menu-item>
+            </el-menu-item-group>
+          </el-submenu>
+
+
+      </el-menu>
+
+
+
+
+
+
+</div>
 </template>
 
 
 
 <script>
-
 export default {
+  
   data() {
     return {
-      isCollapse: false, //不折叠
+      // isCollapse:false,
       menuData: [
-
+        // {
+        //   path: "/",
+        //   name: "home",
+        //   label: "首页",
+        //   icon: "s-home",
+        // },
         {
-          path: "/",
-          name: "home",
-          label: "首页",
-          icon: "s-home",
+          path: "/systematic_risk",//2-1
+          name: "systematic_risk",
+          label: "系统性风险分析",
+          icon: 's-marketing'
         },
         {
           path: "/market_entities",//1
@@ -68,32 +86,29 @@ export default {
           label: "市场主体分析",
           icon: "s-flag",
         },
-        {
+
           //2
-          label: "市场风险分析",
-          icon: "s-marketing",
-
-          children:[
-            {
-            path: "/systematic_risk",//2-1
-            name: "systematic_risk",
-            label: "系统性风险分析",
-            },
-            {
-            path: "/individual_risk",//2-2
-            name: "individual_risk",
-            label: "个体风险分析",
-            },
-
-
-        ],
-        },
         {
           path: "/influential_entities",//3
           name: "influential_entities",
           label: "高影响主体分析",
           icon: "star-off",
         },
+
+            {
+            path: "/individual_risk",//2-2
+            name: "individual_risk",
+            label: "个体风险分析",
+              icon: 'lightning'
+            },
+
+        {
+          path: "/diffus",//5
+          name: "diffus",
+          label: "风险传导",
+          icon: "aim",
+        },
+
         {
           // path: "/warning",//4
           label: "预警服务",
@@ -120,57 +135,62 @@ export default {
           
         },
         {
+          // path: "/event",//8
+          label: "事件分析",
+          icon: "document",
+          children:[
+            {
+              path: "/event_analysis",//2
+              name: "event_analysis",
+              label: "事件分析",
+            },
+            {
+              path: "/event_graph",//2
+              name: "event_graph",
+              label: "事件图谱",
+            },]
+        },
+        {
           path: "/health",//5
           name: "health",
           label: "健康指数",
           icon: "umbrella",
         },
-        {
-          path: "/pressure",//6
-          name: "pressure",
-          label: "压力测试",
-          icon: "s-help",
-        },
+
         {
           path: "/quotation",//7
           name: "quotation",
           label: "行情分析",
           icon: "s-data",
         },
+
         {
-          // path: "/event",//8
-          label: "事件分析",
-          icon: "document",
-          children:[
-            {
-            path: "/event_analysis",//2
-            name: "event_analysis",
-            label: "事件分析",
-            },
-            {
-            path: "/event_graph",//2
-            name: "event_graph",
-            label: "事件图谱",
-            },]
+          path: "/pressure",//6
+          name: "pressure",
+          label: "压力测试",
+          icon: "s-help",
         },
+
+
   
       ],
     };
   },
+ 
+
+ 
+
   methods: {
+    
+
     bigscreen(){//点击标题跳转大屏
       this.$router.push('/bigscreen');
     },
-    handleOpen(key, keyPath) {
-      console.log(key, keyPath);
-    },
-    handleClose(key, keyPath) {
-      console.log(key, keyPath);
-    },
+
     //点击菜单
     clickMenu(item){
      // 当页面的路由this.$route.path 与 跳转的路由item.path 不一致才允许跳转
-     if (this.$route.path !== item.path && !(this.$route.path === '/home' && (item.path === '/'))) {//$route是当前路径的路由
+     if (this.$route.path !== item.path && !(this.$route.path === '/market_entities' && (item.path === '/'))) {//$route是当前路径的路由
         this.$router.push(item.path)//$router是整个的router实例
       }
       this.$store.commit('selectMenu', item)//点击获取新路由对象,store在这里不用import  
@@ -178,11 +198,16 @@ export default {
 
   },
   computed: {
+
     hasChildren() {//有子菜单才需要用
       return this.menuData.filter((item) => item.children);
     },
     nochildren() {
       return this.menuData.filter((item) => !item.children);
+    },
+    isCollapse(){
+      return this.$store.state.tab.isCollapse
+
     },
   },
 };
@@ -240,4 +265,5 @@ export default {
     color:#fff;
 
 }
+
 </style>

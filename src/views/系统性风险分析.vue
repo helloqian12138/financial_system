@@ -1,229 +1,203 @@
 <!-- 系统风险分析，原市场分析拆分、新增、11.6合并-->
 <template>
     <div>
-      <!-- 图谱，之前的在risk -->
       <div class="one">
-          <el-card style='height: 550px;margin-bottom: 10px;' :body-style={padding:0}> 
-         <!-- height:400px -->
-         <!-- 1、上标 -->
-          <span class="superscript" style="width: 20px; height: 40px;">系统风险分析</span>
-          <!-- 2、产品搜索栏 -->
-  
-          <div class="form">
-                                                           <!-- inline="true"表单域在一行 -->
-              <el-form :inline="true"  class="demo-form-inline" :model="formInline1" ref="formInline1">
-                <el-form-item label="市场" prop="市场">
-                  <el-select size="mini" v-model="formInline1.market">
-                    <el-option label="股票" value="股票"></el-option>
-                    <el-option label="基金" value="基金"></el-option>
-                  </el-select>
-                </el-form-item>
-  
-                <el-form-item label="行业" prop="行业">
-                  <el-select  size="mini" v-model="formInline1.industry">
-                    <el-option label="行业1" value="行业1"></el-option>
-                    <el-option label="行业2" value="行业2"></el-option>
-                  </el-select>
-                </el-form-item>
-                <el-form-item label="开始时间" prop="开始时间">
-                  <el-date-picker
-                      v-model="formInline1.start_date"
-                      type="date"
-                      placeholder="年/月/日" 
-                      size="mini">
-                  </el-date-picker>
-                </el-form-item>
-  
-                <el-form-item label="结束时间" prop="结束时间">
-                <el-date-picker
-                    v-model="formInline1.end_date"
-                    type="date"
-                    placeholder="年/月/日" 
-                    size="mini">
-                </el-date-picker>
-              </el-form-item>
-                <el-form-item>
-                  <el-button class="grayish_btn" @click="onSubmit2" size="mini">查询</el-button>
-                </el-form-item>
-  
-            </el-form>
-          </div>
-          
-          <el-row :gutter="20">
-          <el-col :span="18">
-    
-              图谱待定
-  
-          </el-col>
-  
-          <el-col :span="6">
-          <div style="margin-right: 10px;">
-              <!-- 表 -->
-              <el-table class='table' :data="tableData1" 
-                  :header-cell-style="{background: 'rgba(242, 242, 242, 0.654901960784314)',marginright:'20px'}" 
-                  header-row-class-name="active_header"
-                  header-cell-class-name="active_header"
-                  cell-class-name="content_center"
-                
-                  :row-style="{height:'28px',marginright:'20px'}"
-                  :cell-style="{padding:'0px',marginright:'20px'}"
-                  style="margin-right:20px;">
-                <!-- border -->
-                  <el-table-column
-                      prop="value_label"
-                      label="行情风险评估"
-                      width='200px'>
-                  </el-table-column>
-                  <el-table-column
-                      prop="value"
-                      label="评估值"
-                      width='100px'
-                      >
-                  </el-table-column>
-  
-             </el-table>
-          </div>
-  
-  
-          </el-col>
-      </el-row>
-          
-          
-  
-  
-        </el-card>
-      
-        </div>
+        <!-- 卡片化的标签页 -->
 
-        <MarketRisk/>
+
+            <el-card style='height: 440px;margin-bottom:10px;' :body-style={padding:0}>
+            <!-- height:400px -->
+            <!-- 1、上标 -->
+            <span class="superscript" style="width: 20px; height: 40px;">资本市场系统性风险指数监测
+</span>
+
+            <!-- 添加折线图 -->
+
+              <component :is="compName" :zoom="datazoom" @datazoom="changeComp" ></component>
+<!--            <system-risk-component/>-->
+
+            </el-card>
+
+            <el-card style="height: 550px;margin-top: 10px" :body-style={padding:0}>
+              <span class="superscript" style="width: 20px; height: 20px;">维度时序</span>
+              <dimension-component :zoom="datazoom"/>
+
+
+            </el-card>
+            <el-card style='height: 600px;margin-top: 10px;' :body-style={padding:0}>
+              <!-- height:400px -->
+              <!-- 1、上标 -->
+              <span class="superscript" style="width: 20px; height: 40px;">系统性影响指标分析</span>
+
+              <!-- 3、tab -->
+              <el-tabs type="border-card" style='margin: 20px 20px 0 20px;' @tab-click="handleClick">
+
+                <!-- 收益率传染 -->
+                <el-tab-pane label="个体风险状态" :lazy='true'>
+                <market-risk-component :zoom="datazoom" :title="'个体风险状态'"/>
+                </el-tab-pane>
+
+<!--                延迟渲染  lazy true-->
+                <!-- 波动传染 -->
+                <el-tab-pane label="风险关联与溢出" :lazy='true'>
+                  <market-risk-component :zoom="datazoom" :title="'风险关联与溢出'"/>
+                </el-tab-pane>
+
+                <el-tab-pane label="市场系统结构" :lazy='true'>
+                  <market-risk-component :zoom="datazoom" :title="'市场系统结构'"/>
+                </el-tab-pane>
+
+                <el-tab-pane label="市场波动和趋势" :lazy='true'>
+                  <market-risk-component :zoom="datazoom" :title="'市场波动和趋势'"/>
+                </el-tab-pane>
+              </el-tabs>
+<!--              <div class="warning-component">-->
+<!--                <div class="warning-dates">-->
+<!--                  <div class="date-item">前日：<span>{{ prevDayIndex }}</span></div>-->
+<!--                  <div class="date-item">昨日：<span>{{ yesterdayIndex }}</span></div>-->
+<!--                  <div class="date-item">今日：<span>{{ todayIndex }}</span></div>-->
+<!--                  <div class="date-item">明日：<span>{{ tomorrowIndex }}</span></div>-->
+<!--                </div>-->
+<!--              </div>-->
+            </el-card>
+
+        <el-card style="height: 450px;margin-top: 10px" :body-style={padding:0}>
+          <span class="superscript" style="width: 20px; height: 20px;">宏观经济指标</span>
+          <system-risk-future/>
+
+
+        </el-card>
+
+            <!--            <market-risk-component/>-->
+<!--            <MarketRisk/>-->
+
+
+      </div>
+
+
     </div>
   </template>
   
   <script>
-  import MarketRisk from "/src/views/MarketRisk.vue";
-
-  export default {
+import systemRiskComponent from '@/components/systemRiskComponent';
+import marketRiskComponent from "@/components/riskIndexComponent";
+import dimensionComponent from "@/components/dimensionComponent";
+import systemRiskFuture from "@/components/systemRiskFuture";
+export default {
+    name:'systematic_risk',
     components:{
-      MarketRisk,
-    },
+      systemRiskFuture,
+      dimensionComponent,
+      systemRiskComponent,
+      marketRiskComponent
+},
     data () {
       return {
-  // 【整合接收数据】
-          formInline1: {
-          market:'',
-          industry:'',
-          start_date:'',
-          end_date:'',
-      },
-      formInline2: {
-          market:'',
-          industry:'',
-          start_date:'',
-          end_date:'',
-      },
-  // 【表格】
-      tableData1: [
-  {
-      value_label:'采矿业',
-      value:0.25
-  },
-  {
-      value_label:'文化、体育和娱乐业',
-      value:0.18
-  },
-  {
-      value_label:'制造业',
-      value:0.17
-  },
-  {
-      value_label:'租赁和商务服务业',
-      value:0.17
-  },
-  {
-      value_label:'交通运输、仓储和邮政业',
-      value:0.14
-  },
-  {
-      value_label:'软件和信息技术服务业',
-      value:0.14
-  },
-  {
-      value_label:'环境和公共设施管理业',
-      value:0.14
-  },
-  {
-      value_label:'综合评估',
-      value:"良好"
-  },
-  ],
-      tableData2: [
-          { 
-              异常关联类型: '股价波动异常',
-              涉及股票: '股票1',
-              },
-          { 
-              异常关联类型: '高频交易',
-              涉及股票: '股票1',
-          },
-          { 
-              异常关联类型: '资产泡沫',
-              涉及股票: '股票1',
-          },
-            
-          ],
-      tableLabel: {
-          编号: '编号',
-          异常关联类型: '异常关联类型',
-          涉及股票: '涉及股票',
-          监测时间: '监测时间',
-          股票价格: '股票价格',
-          交易数量: '交易数量',
-          风险等级: '风险等级',
-      },
+        datazoom:[],
+        compName:'systemRiskComponent',
+        prevDayIndex:'',
+        yesterdayIndex:'',
+        todayIndex:'',
+        tomorrowIndex:'',
+  state:'个体风险状态'
   }
     },
     mounted(){
+
     },
     methods:{
-      onSubmit1(){},
-      onSubmit2(){},
-      detail(row){}
+      changeComp(mesg){
+        this.datazoom=mesg
+        console.log(mesg)
+      },
+      // handleClick(tab, event) {
+      //   this.state=tab.label
+      // }
+      changeState(){
+        let lis=['个体风险状态','风险关联与溢出','市场系统结构','市场波动和趋势']
+        this.state=lis.indexOf(this.state)+1>3? '个体风险状态':lis[lis.indexOf(this.state)+1]
+      }
     },
   }
   </script>
   
   <style lang="less" scoped>
-  .form{//产品搜索栏
-    
-    display:flex;
-    justify-content:space-between;//左右贴边
-    margin-top:10px; 
-    // height: 40px;
-    padding-left: 20px;
-  
-   }
-   .grayish_btn{//浅灰色按钮
-    color: #fff;//文字颜色
-    background-color: #aaaaaa;//背景颜色
+  .button {
+    border-radius: 7px;
+    width: 160px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    cursor: pointer;
+    border: 3px solid rgb(94, 255, 209);
+    background-color: rgb(94, 255, 209);
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.137);
   }
-   // 调整表头间隔、设置表头下方边框颜色
-   /deep/ .el-table td.el-table__cell, .el-table th.el-table__cell.is-leaf {
-        border-bottom: 1px solid rgba(224, 223, 223, 0.771) !important;
-        padding: 8px 0 !important;//这个页面表头大，可以调整一下间距
-        min-width: 0 !important;
-      }
-      .el-table .el-table__cell {
-        padding: 12px 0; 
-        min-width: 0;
-      }
-      /deep/ .active_header{//表头
-        color: #110101;
-        text-align: center !important;
-        // height: 1px;
-      }
-      /deep/ .content_center{//表的内容
-        text-align: center !important;
-      }
-    
+
+  .text {
+
+    width: 70%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    //background-color: rgb(255, 255, 255);
+    color: black;
+  }
+
+  .arrow path {
+    fill: rgb(19, 19, 19);
+  }
+
+  .button:hover .arrow {
+    animation: slide-in-left 0.6s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+  }
+
+  @keyframes slide-in-left {
+    0% {
+      transform: translateX(-8px);
+      opacity: 0;
+    }
+
+    100% {
+      transform: translateX(0px);
+      opacity: 1;
+    }
+  }
+
+  .button:active {
+    transform: scale(0.97);
+  }
+  .warning-component {
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-width: 100%;
+    text-align: center;
+
+    margin: auto;
+  }
+
+  .warning-dates {
+    display: flex;
+    justify-content: space-between;
+    //margin-bottom: 10px;
+  }
+
+  .date-item {
+    margin: 0 10px;
+    font-weight: bold;
+  }
+
+  .warning-recent {
+    color: #ff4d4f;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+
   </style>
   

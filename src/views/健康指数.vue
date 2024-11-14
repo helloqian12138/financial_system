@@ -36,7 +36,7 @@
 
               <!-- 第一栏"健康指数"的表格 -->
             <div class="table">
-              <el-table :data="tableData_1" 
+              <el-table :data="tableData_1" :header-cell-style="{background: 'rgba(242, 242, 242)'}"
                       border  
                       height="250" 
                       :row-style="{height:'28px'}"
@@ -159,7 +159,7 @@
         <!-- 2、对比 -->
             <el-tab-pane label="对比">
                 <!-- 2-1-雷达图对比 -->
-                <el-card style=" height:770px; border: 1px solid #7f7f7f;" :body-style={padding:0} >         <!--:body-style={padding:0}取消卡片边距，btn就能在左上角 -->
+                <el-card style=" height:850px; border: 1px solid #7f7f7f;" :body-style={padding:0} >         <!--:body-style={padding:0}取消卡片边距，btn就能在左上角 -->
                     <div class="card_label" style=" height: 24px;width: 100%;text-align: left; padding-left:10px">雷达图对比</div>
 
                     <!-- 搜索框 -->
@@ -180,7 +180,7 @@
                               :fetch-suggestions="querySearch"
                               placeholder="公司名称"
                           ></el-autocomplete>
-                          <el-form-item label="时间 " style=" margin-right: 40px;">
+                          <el-form-item label="时间 " style=" margin-right: 40px;margin-left: 40px;">
                           <quter-component label="开始时间" v-model="formInline2.quarter_year" placeholder="选择季度" />
                           </el-form-item>
                         </el-form-item>
@@ -193,17 +193,17 @@
                 
                     <!-- 雷达图 -->
                     <div class='radar' >
-                      <div class="quarter_change">
-                        <i class="el-icon-arrow-left"  border style="font-size: 50px;color:#7f7f7f"></i>
-                        <div>上一季度</div>
-                      </div>
+<!--                      <div class="quarter_change">-->
+<!--                        <i class="el-icon-arrow-left"  border style="font-size: 50px;color:#7f7f7f"></i>-->
+<!--                        <div>上一季度</div>-->
+<!--                      </div>-->
                     
                       <div ref="echarts_1" style="height:500px;width:500px"></div>
                     </div>
 
                     <!-- "对比"表格 -->
                     <div class="table"  style="padding:20px">
-                      <el-table :data="tableData_2_1" 
+                      <el-table :data="tableData_2_1" :header-cell-style="{background: 'rgba(242, 242, 242)'}"
                               border  
                               :row-style="{height:'28px'}"
                               :cell-style="{padding:'3px'}"
@@ -289,7 +289,7 @@
                         </el-card>
                         <!-- "对比-交叉对比-行业"表格 -->
                         <div class="table"  style="  padding: 20px 10px 2px 0px;"><!--返回表格添加间隙 上 右 -->
-                          <el-table :data="tableData_2_2" 
+                          <el-table :data="tableData_2_2" :header-cell-style="{background: 'rgba(242, 242, 242)'}"
                                   border  
                                   :row-style="{height:'28px'}"
                                   :cell-style="{padding:'3px'}"
@@ -335,7 +335,7 @@
                         
                         <!-- "对比-交叉对比-地域"表格 -->
                         <div class="table"  style="  padding: 20px 10px 2px 0px;"><!--返回表格添加间隙 上 右 -->
-                          <el-table :data="tableData_2_3" 
+                          <el-table :data="tableData_2_3" :header-cell-style="{background: 'rgba(242, 242, 242)'}"
                                   border  
                                   :row-style="{height:'28px'}"
                                   :cell-style="{padding:'3px'}"
@@ -359,7 +359,7 @@
             <el-tab-pane label="我的管理">
             <!-- 第三栏"我的管理"的表格 -->
             <div class="table">
-              <el-table :data="tableData_3" 
+              <el-table :data="tableData_3" :header-cell-style="{background: 'rgba(242, 242, 242)'}"
 
 
                       border  
@@ -398,6 +398,7 @@ import quterComponent from "@/components/quterComponent";
 import * as echarts from "echarts"
 import http from '../utils/request'
 export default {
+  name:'health',
   components:{
     quterComponent
 },
@@ -513,9 +514,9 @@ tableLabel_long: {
 // [table-data]
       // 第1栏"健康指数"表格
       tableData_1: [
-        { name: '中国银行',
-          index: 1,
-          level: "中等",},
+        // { name: '中国银行',
+        //   index: 1,
+        //   level: "中等",},
       ],
       // 第2栏"对比"表格
       tableData_2_1: [
@@ -621,7 +622,7 @@ tableLabel_long: {
     },
     
     onSubmit6(){
-      if (this.tableData_2_1){
+      if (this.tableData_2_1 || this.formInline2.radarData1 ||this.formInline2.radarData2){
         this.formInline2.radarData1.length=0
         this.formInline2.radarData2.length=0
         this.tableData_2_1.length=0
@@ -661,6 +662,8 @@ tableLabel_long: {
         this.formInline2.tableData2.name=this.formInline2.company2
         for (let i in response.data.data)
           if (i !=='健康指数' && i !=='等级' && typeof response.data.data[i]==='number') this.formInline2.radarData2.push(response.data.data[i])
+        console.log(this.formInline2.radarData2)
+        console.log(this.formInline2.radarData1)
         const echarts1 = echarts.init(this.$refs.echarts_1)
 
         this.tableData_2_1.push( this.formInline2.tableData2)
@@ -897,7 +900,7 @@ tableLabel_long: {
               }
             },
             title: {
-              text: '2011年第一季度',
+              text: this.formInline1.quarter_year.slice(0,4)+'年第'+this.formInline1.quarter_year.slice(6,)+'季度',
               x:'center',//水平安放位置，默认为'left'，可选为：'center' | 'left' | 'right' | {number}（x坐标，单位px）
               y:"bottom",
               padding:[ 0,10,10,10],
@@ -986,7 +989,7 @@ tableLabel_long: {
     }
     /deep/ .active_header{//表头
       color: #333333;
-      font-size: 9px;
+      font-size: 13px;
       text-align: center !important;
       border-color:#333333;
 
@@ -994,7 +997,7 @@ tableLabel_long: {
     }
     /deep/ .content_center{//表的内容
       text-align: center !important;
-      font-size: 10px;
+      font-size: 13px;
       border-color:#333333;
     }
   }
@@ -1018,6 +1021,10 @@ tableLabel_long: {
   .line{
     display:flex;
     justify-content:center;
+  }
+  .grayish_btn{//浅灰色按钮
+    color: #fff;//文字颜色
+    background-color: #aaaaaa;//背景颜色
   }
 </style>
   

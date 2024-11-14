@@ -1,280 +1,570 @@
 <template>
 
     <el-row> 
-       <!-- 搜索栏 -->
+      <el-tabs type="border-card"> 
+        <!-- 1、横向对比 -->
+        <el-tab-pane label="横向对比">
+           <!-- 搜索栏 -->
+          <div class="form">
+                                                          <!-- inline="true"表单域在一行 -->
+            <el-form :inline="true"  :model="formInline1" class="demo-form-inline">
+              <el-form-item label="市场">
+                <el-select   v-model="formInline1.market" placeholder="选择市场" size="mini">
+                  <el-option v-for="item in options_market" :key="item.value" :label="item.label" :value="item.value"></el-option>
+                </el-select>
+              </el-form-item>
 
-        <div class="form">
-                                                        <!-- inline="true"表单域在一行 -->
-          <el-form :inline="true"  :model="formInline1" class="demo-form-inline">
-            <el-form-item label="市场">
-              <el-select   v-model="formInline1.market" placeholder="选择市场" size="mini">
-                <el-option v-for="item in options_market" :key="item.value" :label="item.label" :value="item.value"></el-option>
-              </el-select>
-            </el-form-item>
+              <el-form-item label="主体类型">
+                <el-select   v-model="formInline1.industry" placeholder="选择行业" size="mini">
+                  <el-option v-for="item in options_industry" :key="item.value" :label="item.label" :value="item.value"></el-option>
+                </el-select>
+              </el-form-item>
 
-            <el-form-item label="行业">
-              <el-select   v-model="formInline1.industry" placeholder="选择行业" size="mini">
-                <el-option v-for="item in options_industry" :key="item.value" :label="item.label" :value="item.value"></el-option>
-              </el-select>
-            </el-form-item>
-            <el-form-item label="开始时间">
-              <el-date-picker  v-model="formInline1.start_date" type="date" placeholder="年-月-日" size="mini"></el-date-picker>
-            </el-form-item>
+              <el-form-item label="时间粒度">
+                <el-select   v-model="formInline1.timeType" placeholder="选择时间粒度" size="mini">
+                  <el-option v-for="item in optionsTime" :key="item.value" :label="item.label" :value="item.value"></el-option>
+                </el-select>
+              </el-form-item>
+              <el-form-item label="时间">
+  <!--              <span class="demonstration">月</span>-->
+                <el-date-picker
+                    v-if="formInline1.timeType==='month'"
+                    v-model="formInline1.pre_date"
+                    type="month"
+                    size="mini"
+                    placeholder="选择月">
+                </el-date-picker>
+                <quter-component  v-if="formInline1.timeType==='quarter'" v-model="formInline1.quarter_date"></quter-component>
+                <half-year v-if="formInline1.timeType==='half_year'" v-model="formInline1.pre_date"/>
+              </el-form-item>
+  <!--            <el-form-item label="时间">-->
+  <!--              <el-date-picker  v-model="formInline1.start_date" type="date" placeholder="年-月-日" size="mini"></el-date-picker>-->
+  <!--            </el-form-item>-->
 
-            <el-form-item label="结束时间">
-              <el-date-picker v-model="formInline1.end_date" type="date" placeholder="年-月-日" size="mini"></el-date-picker>
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" @click="onSubmit1" icon="el-icon-search" size="mini">查询</el-button>
-            </el-form-item>
-          </el-form>
-        </div>
+  <!--            <el-form-item label="结束时间">-->
+  <!--              <el-date-picker v-model="formInline1.end_date" type="date" placeholder="年-月-日" size="mini"></el-date-picker>-->
+  <!--            </el-form-item>-->
+              <el-form-item>
+                <el-button class="grayish_btn" @click="onSubmit1" icon="el-icon-search" size="mini">查询</el-button>
+              </el-form-item>
 
-
-
-       <div class="one_twins_card">
-          <!-- 一左 -->
-          <el-card style=" height:300px" :body-style={padding:0}>         <!--:body-style={padding:0}取消卡片边距，btn就能在左上角 -->
-            <span class="superscript" style="width: 20px; height: 40px;">总体分析</span>
-            <div class="num_card" :body-style="{display: 'flex'}">
-              <el-row >
-                    <el-col :span="11">
-                      <div class="num">
-                        <p class="desc">风险主体总量</p>
-                        <p class="desc_value">{{ totalRisk }}个</p>
-                      </div>
-                     
-
-                    </el-col>
-                    <el-col :span="2">
-                      <el-divider direction="vertical"  content-position="center"></el-divider>
-                    </el-col>
-                    
-                    <el-col :span="11">
-                      <div class="num">
-                        <p class="desc">主体风险类型</p>
-                        <p class="desc_value">{{totalType}}种</p>
-                      </div>
-                    </el-col>
-              </el-row>
-
-           </div>
-          </el-card>
-          
-          <!-- 一右 -->
-          <el-card style=" height:300px" :body-style={padding:0}>
-            <div>
-              <span class="superscript" style="width: 20px; height: 40px;">风险分布</span>
-              <!-- 两个饼状图 -->
-              <div class="twins_pie">
-
-                <div ref="echarts_1" style="height:200px;width:300px"></div>
-                <div ref="echarts_2" style="height:200px;width:300px"></div>
-
-                <!-- <div ref="echarts1" style="height: 100px"></div> -->
-                <!-- <div ref="echarts2" style="height: 100px"></div> -->
-              </div>
-
-
-           </div>
-          </el-card>
-    </div>
-
-
-
-
-    <!-- 第二层表格与图像 -->
-    <div class="two">
-      <el-card :body-style={padding:0} style='height: 400px;width: 100%;'>
-         <!-- 1、上标 -->
-         <span class="superscript" style="width: 20px; height: 40px;">影响力排名</span>
-
-        
-        <!-- 2、内容 -->
-        <div class="content">
-
-          <div class="table" style="width: 50%; float: left; overflow: hidden">
-            <el-table :data="tableData" :header-cell-style="{background: 'rgba(242, 242, 242, 0.654901960784314)'}" 
-                  border  
-                  height="250" 
-                  :row-style="{height:'28px'}"
-                  :cell-style="{padding:'0px'}"
-                  header-row-class-name="active_header"
-                  header-cell-class-name="active_header"
-                  cell-class-name="content_center"
-                  style="width: 90%">          <!-- style="width: 40%"               height="215"  -->
-                <el-table-column v-for='(val,key) in tableLabel' :prop="key" :label="val"  :key="key"/><!--插槽里面没有东西就可以用单标签  -->
-                <el-table-column
-                        prop="scale"
-                        label="操作">
-                        <template slot-scope="scope">
-                          <span class="text"  v-on:click="detail(scope.row)">查看详情</span>
-                        </template>
-                    </el-table-column>
-            </el-table>
+            </el-form>
           </div>
 
-        <div>
-          <!-- 详细信息弹窗，默认关闭 -->
-          <el-dialog  :visible.sync="detailsdialog" width="100%" @open="open()" >
-            <!-- title="收货地址" -->
-            <el-card >
-            <!-- 详细信息 -->
-            <el-card style=" height:300px;margin-bottom:10px ; " :body-style={padding:0} >    
-              <span class="superscript" style="width: 20px; height: 40px;">详细信息</span>
-              <el-table :data="detailData"
-              border  
-                  :row-style="{height:'28px'}"
-                  :cell-style="{padding:'0px'}"
-                  header-row-class-name="active_header"
-                  header-cell-class-name="active_header"
-                  cell-class-name="content_center"
-                  style="margin:15px;">     
-                  <el-table-column
-                  prop="n"
-                  label="主体名称"
-                  width="70">
-                </el-table-column>
-                <el-table-column label="市场结构">
-                  <el-table-column
-                    prop="D"
-                    label="度中心性"
-                    width="100">
-                  </el-table-column>
-                  <el-table-column
-                    prop="B"
-                    label="介数中心性"
-                    width="100">
-                  </el-table-column>
-                  <el-table-column
-                    prop="C"
-                    label="接近中心性"
-                    width="100">
-                  </el-table-column>
-                  <el-table-column
-                    prop="P"
-                    label="PageRank"
-                    width="100">
-                  </el-table-column>
-                </el-table-column>
-                  <el-table-column label="个体规模">
-                    <el-table-column
-                      prop="资金规模"
-                      label="资金规模"
-                      width="100">
-                    </el-table-column>
-                    <el-table-column
-                      prop="持股数量"
-                      label="持股数量"
-                      width="100">
-                    </el-table-column>
-                  </el-table-column>
-                  <el-table-column
-                  prop="主体风险"
-                  label="主体风险"
-                  width="70">
-                </el-table-column>
-                <el-table-column
-                  prop="zhfs"
-                  label="影响力综合分数"
-                  width="100">
-                </el-table-column>
-                <el-table-column
-                  prop="leve"
-                  label="影响等级"
-                  width="70">
-                </el-table-column>
-                <el-table-column
-                        prop="scale"
-                        label="操作"
-                        width="200">
-                        <template slot-scope="scope">
-                          <span class="text"  v-on:click="detail(scope.row)">查看风险指标详情</span>
-                        </template>
-                    </el-table-column>
-              </el-table>
-            </el-card>
-                    
-            <!-- 关联主体 -->
-            <el-card style=" height:200px;margin-bottom:10px " :body-style={padding:0} >    
-              <span class="superscript" style="width: 20px; height: 40px;">关联主体</span>
-                 
-              <!-- 表单 -->
-              <div class="form">
-                                                        <!-- inline="true"表单域在一行 -->
-                  <el-form :inline="true"  :model="formInline2" class="demo-form-inline" style="margin: 10px;">
-                    <template>
-                      <el-radio v-model="type" label="key_node">关键节点</el-radio>
-                      <el-radio v-model="type" label="other">相似节点</el-radio>
-                    </template>
-                    <el-form-item>
-                      <el-button class="grayish_btn" @click="onSubmit2" icon="el-icon-search" size="mini">查询</el-button>
-                    </el-form-item>
-                  </el-form>
-              </div>
-              <!-- 关联主体点 -->
-              <div style="display:flex;padding-left:130px" v-if="showRelated">
-                <el-button  v-for='(val,key) in relatedRes'  :key="key" type="primary" round style=" height:60px; width:180px ;margin-right:50px">{{val}}:{{key}}</el-button>
-              </div>
-            </el-card>
 
-            <!-- 影响范围 -->
-            <el-card style=" height:400px; " :body-style={padding:0} >    
-              <span class="superscript" style="width: 20px; height: 40px;">影响范围</span>
-              <div class="form">
-                                                        <!-- inline="true"表单域在一行 -->
-                  <el-form :inline="true"  :model="formInline3" class="demo-form-inline">
-                    <el-form-item >
-                      <el-checkbox v-model="formInline3.ndustry_selection">行业</el-checkbox>
-                    </el-form-item>
 
-                    <el-form-item >
-                      <el-checkbox v-model="formInline3.regional_selection">地域</el-checkbox>
-                    </el-form-item>
+<!--          <div class="one_twins_card">-->
+<!--              &lt;!&ndash; 一左 &ndash;&gt;-->
+<!--              <el-card style=" height:300px;width: 30%;" :body-style={padding:0}>         &lt;!&ndash;:body-style={padding:0}取消卡片边距，btn就能在左上角 &ndash;&gt;-->
+<!--                <span class="superscript" style="width: 20px; height: 40px;">总体分析</span>-->
+<!--                <div class="num_card" :body-style="{display: 'flex'}">-->
+<!--                  &lt;!&ndash; <el-row > &ndash;&gt;-->
+<!--                        &lt;!&ndash; <el-col :span="11"> &ndash;&gt;-->
+<!--                          <div>-->
+<!--                            <p class="desc">高影响力风险主体总量:</p>-->
+<!--                            <p class="desc_value">{{ totalRisk }}个</p>-->
+<!--                          </div>-->
 
-                    <el-form-item>
-                      <el-button class="grayish_btn" @click="onSubmit2" icon="el-icon-search" size="mini">查询</el-button>
-                    </el-form-item>
-                  </el-form>
+
+<!--                          <el-divider style="width:60%"></el-divider>-->
+
+
+<!--                        &lt;!&ndash; </el-col>-->
+<!--                        <el-col :span="2">-->
+<!--                          <el-divider direction="vertical"  content-position="center"></el-divider>-->
+
+<!--                        </el-col> &ndash;&gt;-->
+<!--                        -->
+<!--                        &lt;!&ndash; <el-col :span="11"> &ndash;&gt;-->
+<!--                          <div>-->
+<!--                            <p class="desc">高影响力主体风险类型:</p>-->
+<!--                            <p class="desc_value">{{totalType}}种</p>-->
+<!--                          </div>-->
+<!--                        &lt;!&ndash; </el-col> &ndash;&gt;-->
+<!--                  &lt;!&ndash; </el-row> &ndash;&gt;-->
+
+<!--              </div>-->
+<!--              </el-card>-->
+<!--              -->
+<!--              &lt;!&ndash; 一右 &ndash;&gt;-->
+<!--              <el-card style=" height:300px;width: 68%;" :body-style={padding:0}>-->
+<!--                <div>-->
+<!--                  <span class="superscript" style="width: 20px; height: 40px;">风险分布</span>-->
+<!--                  &lt;!&ndash; 两个饼状图 &ndash;&gt;-->
+<!--                  <div class="twins_pie">-->
+
+<!--                    <div ref="echarts_1" style="height:280px;width:400px"></div>-->
+<!--                    <div ref="echarts_2" style="height:280px;width:400px"></div>-->
+
+<!--                    &lt;!&ndash; <div ref="echarts1" style="height: 100px"></div> &ndash;&gt;-->
+<!--                    &lt;!&ndash; <div ref="echarts2" style="height: 100px"></div> &ndash;&gt;-->
+<!--                  </div>-->
+
+
+<!--              </div>-->
+<!--              </el-card>-->
+<!--          </div>-->
+
+          <!-- 第二层表格与图像 -->
+          <div class="two">
+            <el-card :body-style={padding:0} style='width: 100%;'>
+              <!-- 1、上标 -->
+              <span class="superscript" style="width: 20px; height: 40px;">影响力排名</span>
+
+      <!--        模型暂时不支持-->
+      <!--         <el-form :inline="true"  class="demo-form-inline" :model="formInline4" ref="formInline">-->
+      <!--            <el-form-item label="个体类型" style="margin: 0px;padding-left: 80px;padding-top: 5px">-->
+      <!--              <el-select  v-model="formInline4.type"  size="mini">-->
+      <!--                <el-option label="私募" value="私募"></el-option>-->
+      <!--                <el-option label="公募" value="公募"></el-option>-->
+      <!--              </el-select>-->
+      <!--            </el-form-item>-->
+      <!--        </el-form>-->
+              
+              <!-- 2、内容 -->
+              <div class="content">
+
+                <div class="table" style="width: 100%; float: left; overflow: hidden">
+                  <el-table :data="tableData" :header-cell-style="{background: 'rgba(242, 242, 242, 0.654901960784314)'}" 
+                        border  
+                        height="250" 
+                        :row-style="{height:'28px'}"
+                        :cell-style="{padding:'0px'}"
+                        header-row-class-name="active_header"
+                        header-cell-class-name="active_header"
+                        cell-class-name="content_center"
+                        style="width: 98%">          <!-- style="width: 40%"               height="215"  -->
+                      <el-table-column v-for='(val,key) in tableLabel' :prop="key" :label="val"  :key="key"/><!--插槽里面没有东西就可以用单标签  -->
+                      <el-table-column
+                              prop="scale"
+                              label="操作">
+                              <template slot-scope="scope">
+                                <span class="text"  v-on:click="detail(scope.row)">查看详情</span>
+                              </template>
+                          </el-table-column>
+                  </el-table>
+                </div>
+
+              <div>
+                <!-- 详细信息弹窗，默认关闭 -->
+                <el-dialog  :visible.sync="detailsdialog" width="100%" @open="open()" >
+                  <!-- title="收货地址" -->
+                  <el-card >
+                  <!-- 详细信息 -->
+                  <el-card style=" height:600px;margin-bottom:10px ; " :body-style={padding:0} >    
+                    <span class="superscript" style="width: 20px; height: 40px;">详细信息</span>
+                    <el-table :data="detailData" :header-cell-style="{background: 'rgba(242, 242, 242, 0.654901960784314)'}"
+                    border  
+                        :row-style="{height:'28px'}"
+                        :cell-style="{padding:'0px'}"
+                        header-row-class-name="active_header"
+                        header-cell-class-name="active_header"
+                        cell-class-name="content_center"
+                        style="margin:15px;">     
+                        <el-table-column
+                        prop="comp_name"
+                        label="主体名称"
+                        width="120">
+                      </el-table-column>
+                      <el-table-column label="市场结构">
+                        <el-table-column
+                          prop="DC"
+                          label="度中心性"
+                          width="120">
+                        </el-table-column>
+                        <el-table-column
+                          prop="BC"
+                          label="介数中心性"
+                          width="120">
+                        </el-table-column>
+                        <el-table-column
+                          prop="CC"
+                          label="接近中心性"
+                          width="120">
+                        </el-table-column>
+                        <el-table-column
+                          prop="weighted-PR"
+                          label="加权PageRank"
+                          width="120">
+                        </el-table-column>
+                        <el-table-column
+                            prop="SLC"
+                            label="局部中心性"
+                            width="120">
+                        </el-table-column>
+                      </el-table-column>
+                        <el-table-column label="个体规模">
+                          <el-table-column
+                            prop="region"
+                            label="所在区域"
+                            width="120">
+                          </el-table-column>
+                          <el-table-column
+                            prop="held_num"
+                            label="持股数量(股)"
+                            width="120">
+                          </el-table-column>
+                          <el-table-column
+                              prop="asset"
+                              label="当前资金规模(万)"
+                              width="120">
+                          </el-table-column>
+                        </el-table-column>
+      <!--                  <el-table-column-->
+      <!--                  prop="主体风险"-->
+      <!--                  label="主体风险"-->
+      <!--                  width="120">-->
+      <!--                </el-table-column>-->
+                      <el-table-column
+                        prop="Total_score"
+                        label="影响力综合分数"
+                        width="120">
+                      </el-table-column>
+                      <el-table-column
+                        prop="grade"
+                        label="影响等级"
+                        width="120">
+                      </el-table-column>
+      <!--                <el-table-column-->
+      <!--                        prop="scale"-->
+      <!--                        label="操作">-->
+      <!--                        <template slot-scope="scope">-->
+      <!--                          <span class="text"  v-on:click="detail(scope.row)">查看风险指标详情</span>-->
+      <!--                        </template>-->
+      <!--                    </el-table-column>-->
+                    </el-table>
+                    <div style="display:flex;">
+                      <el-divider direction="vertical" class="sublabel"></el-divider>
+                      <span class='title'>个体规模分析</span>
+                    </div>
+      <!--              模型暂时不支持-->
+      <!--              <el-form :inline="true"  class="demo-form-inline" :model="formInline4" ref="formInline">-->
+      <!--                <el-form-item label="指标" style="margin: 0px;padding-left: 80px;padding-top: 5px">-->
+      <!--                  <el-select  v-model="formInline4.type"  size="mini">-->
+      <!--                    <el-option label="基金规模" value="基金规模"></el-option>-->
+      <!--                    <el-option label="持股数量" value="持股数量"></el-option>-->
+      <!--                  </el-select>-->
+      <!--                </el-form-item>-->
+      <!--              </el-form>-->
+                    <DifferentialChart :asset="asset" :datelis="datelis" :held_num="held_num"/>
+              
+
+
+                  </el-card>
+                          
+                  <!-- 关联主体 -->
+                  <el-card style=" height:300px;margin-bottom:10px " :body-style={padding:0} >
+                    <span class="superscript" style="width: 20px; height: 40px;">关联主体</span>
+                      
+                    <!-- 表单 -->
+                    <div class="form">
+                                                              <!-- inline="true"表单域在一行 -->
+                        <el-form :inline="true"  :model="formInline2" class="demo-form-inline" style="margin: 10px;">
+                          <template>
+                            <el-radio v-model="typeRela" label="key_node">关键节点</el-radio>
+                            <el-radio v-model="typeRela" label="other">相似节点</el-radio>
+                          </template>
+                          <el-form-item>
+                            <el-button class="grayish_btn" @click="onSubmit2" icon="el-icon-search" size="mini">查询</el-button>
+                          </el-form-item>
+                        </el-form>
+                    </div>
+                    <!-- 关联主体点 -->
+                    <div style="display:flex;padding-left:130px" v-if="showRelated">
+                      <el-button  v-for='(val,key) in relatedRes'  :key="key"  round style=" height:100px; width:300px ;margin-right:50px">{{val}}</el-button>
+                    </div>
+                  </el-card>
+
+                  <!-- 影响范围 -->
+      <!--            <el-card style=" height:400px; " :body-style={padding:0} >    -->
+      <!--              <span class="superscript" style="width: 20px; height: 40px;margin-bottom: 10px;">风险影响</span>-->
+      <!--              <div class="form">-->
+      <!--                                                        &lt;!&ndash; inline="true"表单域在一行 &ndash;&gt;-->
+      <!--                  <el-form :inline="true"  :model="formInline3" class="demo-form-inline">-->
+      <!--                    <template>-->
+      <!--                      <el-radio v-model="typeSpread" label="industry">行业</el-radio>-->
+      <!--                      <el-radio v-model="typeSpread" label="regions">地域</el-radio>-->
+      <!--                    </template>-->
+      <!--&lt;!&ndash;                    <el-form-item >&ndash;&gt;-->
+      <!--&lt;!&ndash;                      <el-checkbox v-model="formInline3.ndustry_selection">行业</el-checkbox>&ndash;&gt;-->
+      <!--&lt;!&ndash;                    </el-form-item>&ndash;&gt;-->
+
+      <!--&lt;!&ndash;                    <el-form-item >&ndash;&gt;-->
+      <!--&lt;!&ndash;                      <el-checkbox v-model="formInline3.regional_selection">地域</el-checkbox>&ndash;&gt;-->
+      <!--&lt;!&ndash;                    </el-form-item>&ndash;&gt;-->
+
+      <!--                    <el-form-item>-->
+      <!--                      <el-button class="grayish_btn" @click="onSubmit3" icon="el-icon-search" size="mini">查询</el-button>-->
+      <!--                    </el-form-item>-->
+      <!--                  </el-form>-->
+      <!--              </div>-->
+      <!--              <div class="flex-charts">-->
+      <!--                <div ref="echarts_4" style="height:300px;width:50%"></div>-->
+      <!--                <div ref="echarts_5" style="height:300px;width:50%"></div>-->
+      <!--            </div>-->
+      <!--            </el-card>-->
+                </el-card>
+                </el-dialog>
               </div>
-              <div class="flex-charts">
-                <div ref="echarts_4" style="height:300px;width:50%"></div>
-                <div ref="echarts_5" style="height:300px;width:50%"></div>
+
+                <div class='bar' style="width: 100%; float: left; overflow: hidden">
+                  <div ref="echarts_3" style="height:300px;width:100%"></div>
+                </div>
+
             </div>
+
+
             </el-card>
-          </el-card>
-          </el-dialog>
-        </div>
 
 
-          <div class='bar' style="width: 50%; float: left; overflow: hidden">
-            <div ref="echarts_3" style="height:300px;width:100%"></div>
+          </div>
+   
+        </el-tab-pane>
+
+
+        <!-- 2、纵向对比 -->
+        <el-tab-pane label="纵向对比">
+          <!-- 搜索栏 -->
+          <div class="form">
+                                                          <!-- inline="true"表单域在一行 -->
+            <el-form :inline="true"  :model="formInline1" class="demo-form-inline">
+              <el-form-item label="市场">
+                <el-select   v-model="formInline1.market" placeholder="选择市场" size="mini">
+                  <el-option v-for="item in options_market" :key="item.value" :label="item.label" :value="item.value"></el-option>
+                </el-select>
+              </el-form-item>
+
+              <el-form-item label="主体类型">
+                <el-select   v-model="formInline1.industry" placeholder="选择行业" size="mini">
+                  <el-option v-for="item in options_industry" :key="item.value" :label="item.label" :value="item.value"></el-option>
+                </el-select>
+              </el-form-item>
+              <el-form-item label="时间粒度">
+                <el-select   v-model="formInline1.timeType" placeholder="选择时间粒度" size="mini">
+                  <el-option v-for="item in optionsTime" :key="item.value" :label="item.label" :value="item.value"></el-option>
+                </el-select>
+              </el-form-item>
+
+
+              <el-form-item label="开始时间">
+
+                <el-date-picker
+                    v-if="formInline1.timeType==='month'"
+                    v-model="formInline1.start_pre"
+                    type="month"
+                    size="mini"
+                    placeholder="选择月">
+                </el-date-picker>
+                <quter-component  v-if="formInline1.timeType==='quarter'" v-model="formInline1.start_quarter"></quter-component>
+                <half-year v-if="formInline1.timeType==='half_year'" v-model="formInline1.start_pre"/>
+<!--                原始时间组件-->
+<!--                <el-date-picker  v-model="formInline1.start_date" type="date" placeholder="年-月-日" size="mini"></el-date-picker>-->
+              </el-form-item>
+              <el-form-item label="结束时间">
+
+                <el-date-picker
+                    v-if="formInline1.timeType==='month'"
+                    v-model="formInline1.end_pre"
+                    type="month"
+                    size="mini"
+                    placeholder="选择月">
+                </el-date-picker>
+                <quter-component  v-if="formInline1.timeType==='quarter'" v-model="formInline1.end_quarter"></quter-component>
+                <half-year v-if="formInline1.timeType==='half_year'" v-model="formInline1.end_pre"/>
+
+<!--                <el-date-picker v-model="formInline1.end_date" type="date" placeholder="年-月-日" size="mini"></el-date-picker>-->
+              </el-form-item>
+              <el-form-item>
+                <el-button class="grayish_btn" @click="onSubmit4" icon="el-icon-search" size="mini">查询</el-button>
+              </el-form-item>
+            </el-form>
+          </div>
+          <div class="table" style=" overflow: hidden">
+                  <el-table :data="historyData" :header-cell-style="{background: 'rgba(242, 242, 242, 0.654901960784314)'}"
+                        border  
+                        height="400" 
+                        :row-style="{height:'28px'}"
+                        :cell-style="{padding:'0px'}"
+
+                        header-row-class-name="active_header"
+                        header-cell-class-name="active_header"
+                        cell-class-name="content_center">          <!-- style="width: 40%"               height="215"  -->
+                    <el-table-column v-for='(val,key) in timeLis' :prop="key" :label="val"  :key="key">
+<!--                      <el-table-column v-for='(val,key) in historyDataLabel' :prop="key" :label="val"  :key="key"/>&lt;!&ndash;插槽里面没有东西就可以用单标签  &ndash;&gt;-->
+                      <!--                      <el-table-column-->
+                      <!--                              prop="scale"-->
+                      <!--                              label="操作">-->
+                      <!--                              <template slot-scope="scope">-->
+                      <!--                                <span class="text"  v-on:click="detail(scope.row)">查看详情</span>-->
+                      <!--                              </template>-->
+                      <!--                          </el-table-column>-->
+
+                    </el-table-column>
+
+                  </el-table>
           </div>
 
-      </div>
+              <div>
+                <!-- 详细信息弹窗，默认关闭 -->
+                <el-dialog  :visible.sync="detailsdialog" width="100%" @open="open()"  :modal="false" >
+                  <!-- title="收货地址" -->
+                  <el-card >
+                  <!-- 详细信息 -->
+                  <el-card style=" height:600px;margin-bottom:10px ; " :body-style={padding:0} >    
+                    <span class="superscript" style="width: 20px; height: 40px;">详细信息</span>
+                    <el-table :data="detailData" :header-cell-style="{background: 'rgba(242, 242, 242, 0.654901960784314)'}"
+                    border  
+                        :row-style="{height:'28px'}"
+                        :cell-style="{padding:'0px'}"
+                        header-row-class-name="active_header"
+                        header-cell-class-name="active_header"
+                        cell-class-name="content_center"
+                        style="margin:15px;">     
+                        <el-table-column
+                        prop="comp_name"
+                        label="主体名称"
+                        width="120">
+                      </el-table-column>
+                      <el-table-column label="市场结构">
+                        <el-table-column
+                          prop="DC"
+                          label="度中心性"
+                          width="120">
+                        </el-table-column>
+                        <el-table-column
+                          prop="BC"
+                          label="介数中心性"
+                          width="120">
+                        </el-table-column>
+                        <el-table-column
+                          prop="CC"
+                          label="接近中心性"
+                          width="120">
+                        </el-table-column>
+                        <el-table-column
+                          prop="weighted-PR"
+                          label="加权PageRank"
+                          width="120">
+                        </el-table-column>
+                      </el-table-column>
+                        <el-table-column label="个体规模">
+                          <el-table-column
+                            prop="region"
+                            label="所在区域"
+                            width="120">
+                          </el-table-column>
+                          <el-table-column
+                            prop="held_num"
+                            label="持股数量"
+                            width="120">
+                          </el-table-column>
+                          <el-table-column
+                              prop="asset"
+                              label="当前资金规模(万)"
+                              width="120">
+                          </el-table-column>
+                        </el-table-column>
+      <!--                  <el-table-column-->
+      <!--                  prop="主体风险"-->
+      <!--                  label="主体风险"-->
+      <!--                  width="120">-->
+      <!--                </el-table-column>-->
+                      <el-table-column
+                        prop="Total_score"
+                        label="影响力综合分数"
+                        width="120">
+                      </el-table-column>
+                      <el-table-column
+                        prop="grade"
+                        label="影响等级"
+                        width="120">
+                      </el-table-column>
+      <!--                <el-table-column-->
+      <!--                        prop="scale"-->
+      <!--                        label="操作">-->
+      <!--                        <template slot-scope="scope">-->
+      <!--                          <span class="text"  v-on:click="detail(scope.row)">查看风险指标详情</span>-->
+      <!--                        </template>-->
+      <!--                    </el-table-column>-->
+                    </el-table>
+                    <div style="display:flex;">
+                      <el-divider direction="vertical" class="sublabel"></el-divider>
+                      <span class='title'>个体规模分析</span>
+                    </div>
+      <!--              模型暂时不支持-->
+      <!--              <el-form :inline="true"  class="demo-form-inline" :model="formInline4" ref="formInline">-->
+      <!--                <el-form-item label="指标" style="margin: 0px;padding-left: 80px;padding-top: 5px">-->
+      <!--                  <el-select  v-model="formInline4.type"  size="mini">-->
+      <!--                    <el-option label="基金规模" value="基金规模"></el-option>-->
+      <!--                    <el-option label="持股数量" value="持股数量"></el-option>-->
+      <!--                  </el-select>-->
+      <!--                </el-form-item>-->
+      <!--              </el-form>-->
+                    <DifferentialChart :asset="asset" :datelis="datelis" :held_num="held_num"/>
+              
 
 
-      </el-card>
-    </div>
+                  </el-card>
+                          
+                  <!-- 关联主体 -->
+                  <el-card style=" height:300px;margin-bottom:10px " :body-style={padding:0} >
+                    <span class="superscript" style="width: 20px; height: 40px;">关联主体</span>
+                      
+                    <!-- 表单 -->
+                    <div class="form">
+                                                              <!-- inline="true"表单域在一行 -->
+                        <el-form :inline="true"  :model="formInline2" class="demo-form-inline" style="margin: 10px;">
+                          <template>
+                            <el-radio v-model="typeRela" label="key_node">关键节点</el-radio>
+                            <el-radio v-model="typeRela" label="other">相似节点</el-radio>
+                          </template>
+                          <el-form-item>
+                            <el-button class="grayish_btn" @click="onSubmit2" icon="el-icon-search" size="mini">查询</el-button>
+                          </el-form-item>
+                        </el-form>
+                    </div>
+                    <!-- 关联主体点 -->
+                    <div style="display:flex;padding-left:130px" v-if="showRelated">
+                      <el-button  v-for='(val,key) in relatedRes'  :key="key"  round style=" height:100px; width:300px ;margin-right:50px">{{val}}</el-button>
+                    </div>
+                  </el-card>
 
-
-    
-
+                </el-card>
+                </el-dialog>
+              </div>
+                     
+        </el-tab-pane>
+</el-tabs>
   </el-row>
 </template>
   
-  <script>
-  import * as echarts from "echarts"
-  import http from '../utils/request'
+<script>
+import * as echarts from "echarts"
+import http from '../utils/request'
+import DifferentialChart from "@/components/echarts/DifferentialChart.vue";
+import halfYear from "@/components/halfYear";
+import quterComponent from "@/components/quterComponent";
+import qs from "qs";
+import {Loading} from "element-ui";
   export default {
+    name:'influential_entities',
+    components:{
+      DifferentialChart,
+      halfYear,
+      quterComponent,
+},
     data() {
       return {
+        datelis:[],
+        asset:[],
+        held_num:[],
         width:null,
         result:{},
         showRelated:false,
         relatedRes:[],
         seleced:'',
-        type:null,
+        typeRela:null,
+        typeSpread:null,
         totalRisk:Number,
         totalType:Number,
 // 【详情页】
@@ -299,192 +589,30 @@
           value: '债券',
           label: '债券'
         }],
-
+        optionsTime:[
+          {label: '半年',value:'half_year'},
+          {label: '季度',value:'quarter'},
+          {label: '月',value:'month'},
+        ],
         // 选择框——2行业选项
-        options_industry: [{
-        value: "新闻和出版业",
-        label: "新闻和出版业"}, {
-        value: "保险业",
-        label: "保险业"}, {
-        value: "铁路运输业",
-        label: "铁路运输业"}, {
-        value: "电力、热力生产和供应业",
-        label: "电力、热力生产和供应业"}, {
-        value: "专业技术服务业",
-        label: "专业技术服务业"}, {
-        value: "汽车制造业",
-        label: "汽车制造业"}, {
-        value: "零售业",
-        label: "零售业"}, {
-        value: "医药制造业",
-        label: "医药制造业"}, {
-        value: "电气机械和器材制造业",
-        label: "电气机械和器材制造业"}, {
-        value: "科技推广和应用服务业",
-        label: "科技推广和应用服务业"}, {
-        value: "金属制品业",
-        label: "金属制品业"}, {
-        value: "非金属矿物制品业",
-        label: "非金属矿物制品业"}, {
-        value: "软件和信息技术服务业",
-        label: "软件和信息技术服务业"}, {
-        value: "计算机、通信和其他电子设备制造业",
-        label: "计算机、通信和其他电子设备制造业"}, {
-        value: "化学原料和化学制品制造业",
-        label: "化学原料和化学制品制造业"}, {
-        value: "航空运输业",
-        label: "航空运输业"}, {
-        value: "石油、煤炭及其他燃料加工业",
-        label: "石油、煤炭及其他燃料加工业"}, {
-        value: "石油和天然气开采业",
-        label: "石油和天然气开采业"}, {
-        value: "电信、广播电视和卫星传输服务",
-        label: "电信、广播电视和卫星传输服务"}, {
-        value: "土木工程建筑业",
-        label: "土木工程建筑业"}, {
-        value: "互联网和相关服务",
-        label: "互联网和相关服务"}, {
-        value: "有色金属冶炼和压延加工业",
-        label: "有色金属冶炼和压延加工业"}, {
-        value: "商务服务业",
-        label: "商务服务业"}, {
-        value: "资本市场服务",
-        label: "资本市场服务"}, {
-        value: "铁路、船舶、航空航天和其他运输设备制造业",
-        label: "铁路、船舶、航空航天和其他运输设备制造业"}, {
-        value: "多式联运和运输代理业",
-        label: "多式联运和运输代理业"}, {
-        value: "装卸搬运和仓储业",
-        label: "装卸搬运和仓储业"}, {
-        value: "水的生产和供应业",
-        label: "水的生产和供应业"}, {
-        value: "批发业",
-        label: "批发业"}, {
-        value: "文教、工美、体育和娱乐用品制造业",
-        label: "文教、工美、体育和娱乐用品制造业"}, {
-        value: "房地产业",
-        label: "房地产业"}, {
-        value: "开采专业及辅助性活动",
-        label: "开采专业及辅助性活动"}, {
-        value: "通用设备制造业",
-        label: "通用设备制造业"}, {
-        value: "煤炭开采和洗选业",
-        label: "煤炭开采和洗选业"}, {
-        value: "食品制造业",
-        label: "食品制造业"}, {
-        value: "农副食品加工业",
-        label: "农副食品加工业"}, {
-        value: "有色金属矿采选业",
-        label: "有色金属矿采选业"}, {
-        value: "研究和试验发展",
-        label: "研究和试验发展"}, {
-        value: "酒、饮料和精制茶制造业",
-        label: "酒、饮料和精制茶制造业"}, {
-        value: "教育",
-        label: "教育"}, {
-        value: "专用设备制造业",
-        label: "专用设备制造业"}, {
-        value: "房屋建筑业",
-        label: "房屋建筑业"}, {
-        value: "纺织服装、服饰业",
-        label: "纺织服装、服饰业"}, {
-        value: "橡胶和塑料制品业",
-        label: "橡胶和塑料制品业"}, {
-        value: "水上运输业",
-        label: "水上运输业"}, {
-        value: "货币金融服务",
-        label: "货币金融服务"}, {
-        value: "黑色金属冶炼和压延加工业",
-        label: "黑色金属冶炼和压延加工业"}, {
-        value: "住宿业",
-        label: "住宿业"}, {
-        value: "燃气生产和供应业",
-        label: "燃气生产和供应业"}, {
-        value: "道路运输业",
-        label: "道路运输业"}, {
-        value: "生态保护和环境治理业",
-        label: "生态保护和环境治理业"}, {
-        value: "纺织业",
-        label: "纺织业"}, {
-        value: "化学纤维制造业",
-        label: "化学纤维制造业"}, {
-        value: "其他制造业",
-        label: "其他制造业"}, {
-        value: "广播、电视、电影和录音制作业",
-        label: "广播、电视、电影和录音制作业"}, {
-        value: "仪器仪表制造业",
-        label: "仪器仪表制造业"}, {
-        value: "皮革、毛皮、羽毛及其制品和制鞋业",
-        label: "皮革、毛皮、羽毛及其制品和制鞋业"}, {
-        value: "造纸和纸制品业",
-        label: "造纸和纸制品业"}, {
-        value: "印刷和记录媒介复制业",
-        label: "印刷和记录媒介复制业"}, {
-        value: "餐饮业",
-        label: "餐饮业"}, {
-        value: "公共设施管理业",
-        label: "公共设施管理业"}, {
-        value: "其他金融业",
-        label: "其他金融业"}, {
-        value: "土地管理业",
-        label: "土地管理业"}, {
-        value: "林业",
-        label: "林业"}, {
-        value: "农业",
-        label: "农业"}, {
-        value: "废弃资源综合利用业",
-        label: "废弃资源综合利用业"}, {
-        value: "畜牧业",
-        label: "畜牧业"}, {
-        value: "文化艺术业",
-        label: "文化艺术业"}, {
-        value: "建筑装饰、装修和其他建筑业",
-        label: "建筑装饰、装修和其他建筑业"}, {
-        value: "黑色金属矿采选业",
-        label: "黑色金属矿采选业"}, {
-        value: "其他采矿业",
-        label: "其他采矿业"}, {
-        value: "机动车、电子产品和日用产品修理业",
-        label: "机动车、电子产品和日用产品修理业"}, {
-        value: "家具制造业",
-        label: "家具制造业"}, {
-        value: "建筑安装业",
-        label: "建筑安装业"}, {
-        value: "其他服务业",
-        label: "其他服务业"}, {
-        value: "社会工作",
-        label: "社会工作"}, {
-        value: "渔业",
-        label: "渔业"}, {
-        value: "体育",
-        label: "体育"}, {
-        value: "居民服务业",
-        label: "居民服务业"}, {
-        value: "邮政业",
-        label: "邮政业"}, {
-        value: "金属制品、机械和设备修理业",
-        label: "金属制品、机械和设备修理业"}, {
-        value: "卫生",
-        label: "卫生"}, {
-        value: "木材加工和木、竹、藤、棕、草制品业",
-        label: "木材加工和木、竹、藤、棕、草制品业"}, {
-        value: "农、林、牧、渔专业及辅助性活动",
-        label: "农、林、牧、渔专业及辅助性活动"}, {
-        value: "非金属矿采选业",
-        label: "非金属矿采选业"}, {
-        value: "租赁业",
-        label: "租赁业"}, {
-        value: "水利管理业",
-        label: "水利管理业"}, 
-
-      
-      ],
+        options_industry: [
+          {label:'机构投资者',value:'institutional_investors'},
+          {label:'私募',value:'PrivFund'},
+          {label:'上市企业',value:'listedComp'},
+          {label:'海外机构',value:'ForeignComp'},
+          {label:'量化机构',value:'QuantFund'},
+        ],
         // 整合收据进行接收（3个）
         formInline1: {
+            timeType:'',
+            quarter_date:'',
+            pre_date:'',
             market: '',
             industry: '',
-            start_date:'',
-            end_date:'',
+            start_pre:'',
+            start_quarter:'',
+            end_pre:'',
+          end_quarter:'',
           },
         // 详情页
         formInline2: {
@@ -495,6 +623,10 @@
           regional_selection: false,//地域选择
           ndustry_selection: false,//行业选择
         },
+        formInline4: {
+          type:'',
+        },
+
 
         // 图表数据
         pieDataIndus:[],
@@ -507,10 +639,20 @@
 
         ],
         tableLabel: {
-          name: '主体名称',
-          main_risk: '主体风险',
-          zhfs: '影响力综合分数',
-          leve: '影响等级',
+          comp_name: '主体名称',
+          Total_score: '影响力综合分数',
+          grade: '影响等级',
+          spread_ability:'传播能力'
+        },
+        historyData:[],
+        timeLis:[],
+        historyDataLabel: {
+
+          // duration:'时间',
+          comp_name: '主体名称',
+          Total_score: '影响力综合分数',
+          // grade: '影响等级',
+          // spread_ability:'传播能力'
         },
                 // 柱状图
         barData: [
@@ -582,19 +724,27 @@
                   },
                   title: {
                     text: '风险行业分布',
+
                     x:'center',//水平安放位置，默认为'left'，可选为：'center' | 'left' | 'right' | {number}（x坐标，单位px）
+                    y:'bottom',
+
                     textStyle: {//主标题文本样式
                       fontSize: 13,
+                      color:'#696969',
                     },
-                    padding:[ 5,0,20,0],//[5,10] | [ 5,6, 7, 8] ,标题内边距[上，x，下，x]
+                    padding:[ 35,0,5,0],//[5,10] | [ 5,6, 7, 8] ,标题内边距[上，x，下，x]
                   },
 
                   series: [
                     {
                       data: this.pieDataIndus,
                       type: 'pie',
+                      avoidLabelOverlap: true,   //是否启用防止标签重叠策略
+                      minAngle: 5,               //最小的扇区角度（0 ~ 360），用于防止某个值过小导致扇区太小影响交互
+
                     }
                   ],
+
                 }
 
                 const option_2 = {
@@ -612,6 +762,7 @@
                     x:'center',//水平安放位置，默认为'left'，可选为：'center' | 'left' | 'right' | {number}（x坐标，单位px）
                     textStyle: {//主标题文本样式
                       fontSize: 13,
+                      color:'#696969',
                     },
                     padding:[ 5,0,20,0],//[5,10] | [ 5,6, 7, 8] ,标题内边距
                   },
@@ -631,140 +782,411 @@
 
   },
     methods:{
-      width(){
-        return '60px'
-      },
+      // width(){
+      //   return '60px'
+      // },
     // 影响力排名
-    onSubmit1(){
-      console.log("影响力排名")
-      // console.log(this.formInline1)
-        http.get(
+      onSubmit1(){
+        console.log("影响力排名")
+        console.log(this.formInline1.start_date)
+        // console.log(this.formInline1)
+        //时间格式不一样，所以要分参数quarter_date
+        let options={
+          text:'请稍等'
+        }
+        let loadingInstance = Loading.service(options);
+        if (this.formInline1.timeType!=='quarter') {
+          http.get(
+              "/rank/network/",
+              {
+                params: {
+                  market: this.formInline1.market,
+                  com_type: this.formInline1.industry,
+                  time: this.formInline1.pre_date,
+                  time_type: this.formInline1.timeType
+                },
+                //   防止带中括号
+                paramsSerializer: params => {
+                  return qs.stringify(params, {indices: false})
+                }
+              }).then(response => {
+                loadingInstance.close()
+            if (response.data.length === 0)
+              alert('没有结果')
+            else {
+              let dat = response.data
+              this.tableData = dat
+              this.barData = dat
+
+              console.log(this.tableData)
+              this.result = response.data
+              // 柱状图
+              const echarts3 = echarts.init(this.$refs.echarts_3)
+              const option_3 = {
+                // 右上角存图
+                toolbox: {
+                  feature: {
+                    saveAsImage: {}
+                  }
+                },
+                legend: {
+                  // 图例文字颜色
+                  textStyle: {
+                    color: "#333",
+                  },
+                },
+                grid: {
+                  left: "20%",
+                },
+                // 提示框
+                tooltip: {
+                  trigger: "axis",
+                  axisPointer: {
+                    type: 'shadow'
+                  }
+                },
+                xAxis: {
+                  type: "category", // 类目轴
+                  // xData太多显示不出来
+                  data: []
+                },
+                yAxis: [
+                  {
+                    type: "value",
+                  }
+                ],
+                title: {
+                  text: '中心性分析',
+                  x: 'center',//水平安放位置，默认为'left'，可选为：'center' | 'left' | 'right' | {number}（x坐标，单位px）
+                  y: "bottom",
+                  textStyle: {//主标题文本样式
+                    fontSize: 13,
+                  },
+                  padding: [5, 0, 10, 0],//[5,10] | [ 5,6, 7, 8] ,标题内边距[上，x，下，x]
+                },
+                series: [
+                  {
+                    name: '介接近中心性',
+                    data: this.barData.map(item => item.CC),
+                    type: 'bar'
+                  },
+                  {
+                    name: '介数中心性',
+                    data: this.barData.map(item => item.BC),
+                    type: 'bar'
+                  },
+                  {
+                    name: '加权PageRank',
+                    data: this.barData.map(item => item['weighted-PR']),
+                    type: 'bar'
+                  },
+                  {
+                    name: '度中心性',
+                    data: this.barData.map(item => item.DC),
+                    type: 'bar'
+                  },
+
+                ],
+              }
+              echarts3.setOption(option_3)
+            }
+          }).finally(
+              ( )=>loadingInstance.close()
+          )
+        }
+        else {
+          {
+            http.get(
                 "/rank/network/",
-                {params:{
+                {
+                  params: {
                     market: this.formInline1.market,
-                    industry: this.formInline1.industry,
-                    start_date:this.formInline1.start_date,
-                    end_date:this.formInline1.end_date,
-        }}).then(response => {
-          let xData=[]
-            this.tableData= response.data.rank
-              this.barData=response.data.index
-              for (let i of this.barData) {
-                xData.push(i.n)
-                // delete i['n']
+                    com_type: this.formInline1.industry,
+                    time: this.formInline1.quarter_date,
+                    time_type: this.formInline1.timeType
+                  },
+                  //   防止带中括号
+                  paramsSerializer: params => {
+                    return qs.stringify(params, {indices: false})
+                  }
+                }).then(response => {
+                  loadingInstance.close()
+              if (response.data.length === 0)
+                alert('没有结果')
+              else {
+                let dat = response.data
+                this.tableData = dat
+                this.barData = dat
+
+                console.log(this.tableData)
+                this.result = response.data
+                // 柱状图
+                const echarts3 = echarts.init(this.$refs.echarts_3)
+                const option_3 = {
+                  // 右上角存图
+                  toolbox: {
+                    feature: {
+                      saveAsImage: {}
+                    }
+                  },
+                  legend: {
+                    // 图例文字颜色
+                    textStyle: {
+                      color: "#333",
+                    },
+                  },
+                  grid: {
+                    left: "20%",
+                  },
+                  // 提示框
+                  tooltip: {
+                    trigger: "axis",
+                    axisPointer: {
+                      type: 'shadow'
+                    }
+                  },
+                  xAxis: {
+                    type: "category", // 类目轴
+                    // xData太多显示不出来
+                    data: []
+                  },
+                  yAxis: [
+                    {
+                      type: "value",
+                    }
+                  ],
+                  title: {
+                    text: '中心性分析',
+                    x: 'center',//水平安放位置，默认为'left'，可选为：'center' | 'left' | 'right' | {number}（x坐标，单位px）
+                    y: "bottom",
+                    textStyle: {//主标题文本样式
+                      fontSize: 13,
+                    },
+                    padding: [5, 0, 10, 0],//[5,10] | [ 5,6, 7, 8] ,标题内边距[上，x，下，x]
+                  },
+                  series: [
+                    {
+                      name: '介接近中心性',
+                      data: this.barData.map(item => item.CC),
+                      type: 'bar'
+                    },
+                    {
+                      name: '介数中心性',
+                      data: this.barData.map(item => item.BC),
+                      type: 'bar'
+                    },
+                    {
+                      name: '加权PageRank',
+                      data: this.barData.map(item => item['weighted-PR']),
+                      type: 'bar'
+                    },
+                    {
+                      name: '度中心性',
+                      data: this.barData.map(item => item.DC),
+                      type: 'bar'
+                    },
+
+                  ],
+                }
+                echarts3.setOption(option_3)
               }
-          // console.log(xData)
-          this.result=response.data
-          // 柱状图
-          const echarts3 = echarts.init(this.$refs.echarts_3)
-          const option_3 = {
-            // 右上角存图
-            toolbox: {
-              feature: {
-                saveAsImage: {}
-              }
-            },
-            legend: {
-              // 图例文字颜色
-              textStyle: {
-                color: "#333",
-              },
-            },
-            grid: {
-              left: "20%",
-            },
-            // 提示框
-            tooltip: {
-              trigger: "axis",
-              axisPointer: {
-                type: 'shadow'
-              }
-            },
-            xAxis: {
-              type: "category", // 类目轴
-              // xData太多显示不出来
-              data:[]
-            },
-            yAxis: [
-              {
-                type: "value",}
-            ],
-            title: {
-              text: '中心性分析',
-              x:'center',//水平安放位置，默认为'left'，可选为：'center' | 'left' | 'right' | {number}（x坐标，单位px）
-              y:"bottom",
-              textStyle: {//主标题文本样式
-                fontSize: 13,
-              },
-              padding:[ 5,0,10,0],//[5,10] | [ 5,6, 7, 8] ,标题内边距[上，x，下，x]
-            },
-            series: [
-              {
-                name: '介接近中心性',
-                data: this.barData.map(item => item.C),
-                type: 'bar'
-              },
-              {
-                name: '介数中心性',
-                data: this.barData.map(item => item.B),
-                type: 'bar'
-              },
-              {
-                name: 'PageRank',
-                data: this.barData.map(item => item.P),
-                type: 'bar'
-              },
-              {
-                name: '度中心性',
-                data: this.barData.map(item => item.D),
-                type: 'bar'
-              }
-            ],
+            }).finally(
+               ( )=>loadingInstance.close()
+            )
           }
-          echarts3.setOption(option_3)
+        }
 
+      },
 
-        })
-    },
     // 关联主体、影响范围
     onSubmit2(){
+      this.relatedRes.length=0
       http.get('/rank/relate/',
       {params:{
             name:this.seleced,
-            type: this.type,
-          market:this.formInline1.market,
+            type: this.typeRela,
+            market:this.formInline1.market,
             industry: this.formInline1.industry,
             start_date:this.formInline1.start_date,
             end_date:this.formInline1.end_date,
       }}).then(res=>{
-        for (let i in res.data)
-        {this.relatedRes.push(res.data[i])
+        // console.log(res.data)
+        if (res.data!=='null'){
+          this.relatedRes.length=0
+          for (let i in res.data)
+          {this.relatedRes.push(res.data[i])
           }
-        console.log(this.relatedRes)
-        this.showRelated=true
+          console.log(this.relatedRes)
+          this.showRelated=true
+        }
+        else
+          this.$message({
+            showClose: true,
+            message: '未查询到结果',
+            type: 'info'
+          });
+
       })
     },
-    detail(row){
-      this.seleced=row.name
+    // 按行业、地域
+      onSubmit3(){
+      // this.relatedRes.length=0
+        http.get('/rank/spread/',
+            {params:{
+                name:this.seleced,
+                type: this.typeSpread,
+                market:this.formInline1.market,
+                industry: this.formInline1.industry,
+                start_date:this.formInline1.start_date,
+                end_date:this.formInline1.end_date,
+              }}).then(res=>{
+          console.log(res.data.data)
 
+        })
+      },
+      // 纵向对比表单提交
+      onSubmit4() {
+        if (this.formInline1.timeType !== 'quarter') {
+          http.get('/rank/history/',
+              {
+                params: {
+                  market: this.formInline1.market,
+                  com_type: this.formInline1.industry,
+                  time_type: this.formInline1.timeType,
+                  start: this.formInline1.start_pre,
+                  end: this.formInline1.end_pre,
+                },
+                paramsSerializer: params => {
+                  return qs.stringify(params, {indices: false})
+                }
+              }).then(res => {
+            if (res.data.length === 0)
+              alert('没有结果')
+            else {
+              // let tmp = res.data
+              // this.getSpanArr(tmp)
+              this.historyData=res.data.data
+              this.timeLis=res.data.time
+            }
+
+
+          })
+        } else {
+          http.get('/rank/history/',
+              {
+                params: {
+                  market: this.formInline1.market,
+                  com_type: this.formInline1.industry,
+                  time_type: this.formInline1.timeType,
+                  start: this.formInline1.start_quarter,
+                  end: this.formInline1.end_quarter,
+                },
+                paramsSerializer: params => {
+                  return qs.stringify(params, {indices: false})
+                }
+              }).then(res => {
+            if (res.data.length === 0)
+              alert('没有结果')
+            else {
+              // let tmp = res.data.data
+              // this.getSpanArr(tmp)
+              this.historyData=res.data.data
+              this.timeLis=res.data.time
+
+            }
+          })
+        }
+      },
+      getSpanArr(list) {
+        // 先给所有的数据都加一个v.rowspan = 1
+        list.forEach(item => {
+          item.rowspan = 1;
+          // item.rowspan1 = 1;
+          // 有几列想合并就设置几个
+
+        });
+        // 双层循环
+        for (let i = 0; i < list.length; i++) {
+          for (let j = i + 1; j < list.length; j++) {
+            //此处可根据相同字段进行合并
+            if (list[i].duration=== list[j].duration) {
+              list[i].rowspan++;
+              list[j].rowspan--;
+            }
+            // if (list[i].duration=== list[j].duration  && list[i].Total_score === list[j].Total_score ) {
+            //   list[i].rowspan1++;
+            //   // list[j].rowspan1--;
+            // }
+          }
+          console.log(list[i].rowspan)
+          // 这里跳过已经重复的数据
+          i = i + list[i].rowspan - 1;
+          // i = i + list[i].rowspan1 - 1;
+        }
+        this.historyData.length=0
+        this.historyData = list;
+        console.log(this.historyData)
+      },
+
+      // 复杂表格合并相同列
+      ObjectSpanMethod({ row, column, rowIndex, columnIndex }) {
+        // 第一列
+        if (columnIndex === 0) {
+          return {
+            rowspan: row.rowspan,
+            colspan: 1,
+          };
+        }
+        // 第二列
+        // if (columnIndex === 1) {
+        //   return {
+        //     rowspan: row.rowspan1,
+        //     colspan: 1,
+        //   };
+        // }
+        // row.XXX的值跟上述函数对应
+
+      },
+
+    detail(row){
+      this.seleced=row.comp_name
+      this.datelis.length=0
+      this.asset.length=0
+      this.held_num.length=0
+      http.get('/rank/asset/',
+          {params:{
+              comp_name:this.seleced,
+            }}).then(res=>{
+            for (let i in res.data)
+            {
+              this.datelis.push(res.data[i]['duration'].slice(0,11))
+              this.asset.push(res.data[i]['asset'])
+              this.held_num.push(res.data[i]['held_num'])
+            }
+
+      })
       this.detailData.length=0
-      let tmp
-      for (let i in this.result.index)
+      for (let i in this.tableData)
       {
-        console.log(this.result.index[i].n)
-        if (this.result.index[i].n===this.seleced)
-          tmp=this.result.index[i]
-       }
-      console.log(this.result.rank)
-      for (let i in this.result.rank)
-        if (this.result.rank[i].name===this.seleced)
-          tmp=Object.assign(this.result.rank[i],tmp)
-          // tmp=[...this.result.rank[i],tmp]
-      this.detailData=Array(tmp)
+        if (this.tableData[i]['comp_name']===this.seleced)
+          this.detailData=Array(this.tableData[i])
+      }
+      // let tmp
+      // for (let i in this.result.index)
+      // {
+      //   console.log(this.result.index[i].n)
+      //   if (this.result.index[i].n===this.seleced)
+      //     tmp=this.result.index[i]
+      //  }
+      // console.log(this.result.rank)
+      // for (let i in this.result.rank)
+      //   if (this.result.rank[i].name===this.seleced)
+      //     tmp=Object.assign(this.result.rank[i],tmp)
+      //     // tmp=[...this.result.rank[i],tmp]
+      // this.detailData=Array(tmp)
         console.log(this.detailData)
       // console.log(row.name)//返回这一行所有的内容
-      //这个地方需要连一个新接口
-      //提供弹窗的数据
+
       this.detailsdialog = true//打开弹窗
     },
     initEcharts() {
@@ -905,7 +1327,7 @@
   background-color: #aaaaaa;//背景颜色
 }
 /deep/ .el-table td.el-table__cell, .el-table th.el-table__cell.is-leaf {
-      border-bottom: 1px solid rgba(224, 223, 223, 0.771) !important;
+      border-bottom: 1px solid rgba(242, 242, 242, 0.654901960784314) !important;
       padding: 0px 0 !important;
       min-width: 0 !important;
     }
@@ -932,14 +1354,16 @@
     justify-content:space-between;//左右贴边
     // margin-top:5px; 
     // height: 40px;
-    padding-left: 50px;
+    padding-left: 10px;
+    margin-bottom: 0px;
+    padding-bottom: 0px;
 
   }
   
   // 第一层
   .one_twins_card{
     margin-top:0px;
-    margin-bottom:10px;
+    margin-bottom:3px;
     display:flex;
     justify-content:space-between;//左右贴边
     .el-card {
@@ -951,40 +1375,35 @@
 }
     // 数据
     .num_card{
-    margin-top: 60px;
-    margin-left: 80px;
-    margin-right: 80px;
+    margin-top: 40px;
+    margin-left: 10px;
+    margin-right: 10px;
     margin-bottom: 20px;
-    display:flex;
-    flex-direction:column;//主轴显示
-    justify-content:space-center;//左右贴边
-    // align-items:center;//居中
+
 
     .desc{
-      // margin-bottom:10px;
-      // margin-left:20px;
-      // margin-right:50px;
       text-align: center;//居中
       font-weight: bold;//字体加粗
-      font-size: 16px;
+      font-size: 17px;
+      color:'#696969';
 
     }
     .desc_value{
-      // margin-left:40px;
-      // margin-right:50px;
       text-align: center;//居中
-      font-size: 15px;
+      font-size: 18px;
       color:#02A7F0;;
     }
 
-    .el-divider--vertical {
-    /* display: inline-block; */
-    height: 3em;//分割线宽度
-    text-align: center;//居中
-   
-    // margin-right:100px;
 
-    }
+
+
+    .el-divider--horizontal {
+    display: flex;
+    justify-content:center;
+    height: 1px;
+    width: 80%;
+    margin: 24px 70px 24px 30px;//上 右 下 左
+  }
     .el-statistic {
         font-size: 13px;
         color:#02A7F0;;//没改成，之后再改
@@ -994,10 +1413,10 @@
         display:flex;
         justify-content:space-between;
         // padding:10px;
-        margin-top: 30px;
-        margin-left: 20px;
-        margin-right: 20px;
-        margin-bottom: 20px;
+        // margin-top: 30px;
+        // margin-left: 20px;
+        // margin-right: 20px;
+        // margin-bottom: 20px;
 
     }
   }
@@ -1008,10 +1427,10 @@
 
   // 表格中操作
   .content{
-    display:flex;
-    justify-content:space-between;
+    // display:flex;
+    // justify-content:space-between;
     .table{
-    padding: 20px 2px 2px 20px;//返回表格添加间隙 上 右
+    padding: 20px 10px 2px 10px;//返回表格添加间隙 上 右
 
 
     // 调整表头间隔、设置表头下方边框颜色
@@ -1026,13 +1445,13 @@
     }
     /deep/ .active_header{//表头
       color: #333333;
-      font-size: 12px;
+      font-size: 13px;
       text-align: center !important;
       // height: 1px;
     }
     /deep/ .content_center{//表的内容
       text-align: center !important;
-      font-size: 12px;
+      font-size: 13px;
     }
   
 
@@ -1050,11 +1469,31 @@
     // padding:20px;
 }
 }
- 
+
+.grayish_btn{//浅灰色按钮
+    color: #fff;//文字颜色
+    background-color: #aaaaaa;//背景颜色
+    margin-bottom: 20px;
+  }
   
   
-  
-  
+
+ .sublabel{ // 小标签标识
+    // font-size: 13px;
+    // padding:2px;
+    margin-top:10px;
+    background-color: rgba(2, 167, 240, 0.5);
+    width: 5px; 
+    height: 35px;
+    
+  } 
+  .title{
+    padding-left: 4px;
+    margin-top:15px;
+    font-weight: bold;//字体加粗
+    display:flex;
+    justify-content:flex-start
+}
   
    
    

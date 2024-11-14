@@ -67,7 +67,7 @@
                   </div>
               </el-card>
               <div class="table"  style="  padding: 20px 10px 2px 0px;"><!--板块表格 -->
-                          <el-table :data="tableData_sector" 
+                          <el-table :data="tableData_sector" :header-cell-style="{background: 'rgba(242, 242, 242, 0.654901960784314)'}"
                                   border  
                                   :row-style="{height:'28px'}"
                                   :cell-style="{padding:'3px'}"
@@ -117,7 +117,7 @@
                       </div>
                       </el-card>
                       <div class="table"  style="  padding: 20px 10px 2px 0px;">   <!-- 股票表格 -->
-                                  <el-table :data="tableData_stock" 
+                                  <el-table :data="tableData_stock" :header-cell-style="{background: 'rgba(242, 242, 242, 0.654901960784314)'}"
                                           border  
                                           :row-style="{height:'28px'}"
                                           :cell-style="{padding:'3px'}"
@@ -170,7 +170,7 @@
                       </div>
                     </el-card>
                       <div class="table"  style="  padding: 20px 10px 2px 0px;"><!--基金表格 -->
-                                  <el-table :data="tableData_fund" 
+                                  <el-table :data="tableData_fund" :header-cell-style="{background: 'rgba(242, 242, 242, 0.654901960784314)'}"
                                           border  
                                           :row-style="{height:'28px'}"
                                           :cell-style="{padding:'3px'}"
@@ -208,7 +208,7 @@
             </el-tabs>
               
           <div class="table"  style="  padding: 20px 10px 2px 0px;"><!-- 我的管理的表格 -->
-                                  <el-table :data="tableData_management" 
+                                  <el-table :data="tableData_management" :header-cell-style="{background: 'rgba(242, 242, 242, 0.654901960784314)'}"
                                           border  
                                           :row-style="{height:'28px'}"
                                           :cell-style="{padding:'3px'}"
@@ -267,12 +267,13 @@
 import * as echarts from "echarts"
 import http from '../utils/request'
 export default {
+  name:'quotation',
     //引入组件
   components: {
 
   },
-    data() {
-      return {
+  data() {
+    return {
   
 // 【详情页】
     // 详情页是否打开的判断标签
@@ -482,7 +483,7 @@ export default {
       onSubmit2(){//板块
         console.log("板块查询")
         http.get(
-                "/price/bkall",
+                "/price/bkall/",
                 {params:{
                     com_name: this.formInline2.sector,
                     // start_date:this.formInline.start_date,
@@ -499,7 +500,7 @@ export default {
         console.log("股票查询")
         console.log(this.formInline3_1)
         http.get(
-                "/price/stock",
+                "/price/stock/",
                 {params:{
                     com_name: this.formInline3_1.stock,
                     start_date:this.formInline3_1.start_date,
@@ -517,7 +518,7 @@ export default {
         console.log("基金查询")
         console.log(this.formInline3_2)
         http.get(
-                "/price/fund",
+                "/price/fund/",
                 {params:{
                     com_name: this.formInline3_2.fund,
                     start_date:this.formInline3_2.start_date,
@@ -984,4 +985,8 @@ export default {
     justify-content:space-between;
     // padding:20px;
 }
+.grayish_btn{//浅灰色按钮
+    color: #fff;//文字颜色
+    background-color: #aaaaaa;//背景颜色
+  }
 </style>

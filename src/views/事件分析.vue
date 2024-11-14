@@ -1,27 +1,19 @@
 <!-- 11.6合并版 -->
 <template>
   <div>
-  
-    <div class="one">
-      <el-card style='height: 300px;' :body-style={padding:0}> 
-       <!-- height:400px -->
-       <!-- 1、上标 -->
-        <span class="superscript" style="width: 20px; height: 40px;">事件分析</span>
-        <!-- 2、产品搜索栏 -->
-
-        <div class="form">
+    <div class="form">
                                                         <!-- inline="true"表单域在一行 -->
           <el-form :inline="true"  :model="formInline1" class="demo-form-inline">
             <el-form-item label="公司名称">
-<!--              <el-input  v-model="formInline1.company" placeholder="公司名称：" size="mini"></el-input>-->
+              <el-input  v-model="formInline1.company" placeholder="全称或简称" size="mini"></el-input>
 <!--              搜索联想-->
-              <el-autocomplete
-                  class="inline-input"
-                  v-model="formInline1.company"
-                  :fetch-suggestions="querySearch"
-                  placeholder="公司名称"
-                  size="mini"
-              ></el-autocomplete>
+<!--              <el-autocomplete-->
+<!--                  class="inline-input"-->
+<!--                  v-model="formInline1.company"-->
+<!--                  :fetch-suggestions="querySearch"-->
+<!--                  placeholder="公司名称"-->
+<!--                  size="mini"-->
+<!--              ></el-autocomplete>-->
             </el-form-item>
 
             <el-form-item label="事件类型">
@@ -37,33 +29,36 @@
               <el-date-picker v-model="formInline1.end_date" type="date" placeholder="年-月-日" size="mini"></el-date-picker>
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" @click="onSubmit1" icon="el-icon-search" size="mini">查询</el-button>
+              <el-button class="grayish_btn" @click="onSubmit1" icon="el-icon-search" size="mini">查询</el-button>
             </el-form-item>
           </el-form>
-        </div>
-  
-        
+    </div>
 
-        <!-- 3、返回数据（图表） -->
+    <div class="one">
+      <el-card class="card" style='height: 1000px;' :body-style={padding:0}> 
+       <!-- height:400px -->
+       <!-- 1、上标 -->
+        <span class="superscript" style="width: 20px; height: 40px;">事件分析</span>
+        <!-- 2、返回数据（图表） -->
         <div  class="content">
-          <el-table class='table' :data="tableData" :fit='true' :header-cell-style="{background: 'rgba(242, 242, 242, 0.654901960784314)'}" 
-              border  
-              height="300"
-              
+          <el-empty description="" v-if="noNews"></el-empty>
+          <el-table class='table' :data="tableData" :fit='true' :header-cell-style="{background: 'rgba(242, 242, 242, 0.654901960784314)'}"
+              border
+              height="900"
+                    style="width: 100%"
+              v-if="!noNews"
               :row-style="{height:'28px'}"
               :cell-style="{padding:'0px'}"
               header-row-class-name="active_header"
               header-cell-class-name="active_header"
               cell-class-name="content_center">
-              <!-- header-row-class-name 表头行 加classname -->
-              <!-- cell-class-name 单元格加名字 -->
-            <!-- border有边框 -->
-                <!-- stripe
-                height="90%"
-                :data="tableData"
-                style="width: 80%;  margin-top:10px; margin-bottom:10px;" -->
-                <el-table-column v-for='(val,key) in tableLabel' :prop="key" :label="val" show-overflow-tooltip /><!--插槽里面没有东西就可以用单标签  -->
-                                                                              <!-- show-overflow-tooltip可以省略展示较多的文字内容 -->
+
+                <el-table-column v-for="(val, key) in tableLabel" :prop="key"  :label="val"
+                                 :width="widthDict(key)"
+                                 v-show="tableData.length!==0" />
+
+                <!-- <el-table-column v-for='(val,key) in tableLabel' :prop="key" :label="val" :width=calculateColumnWidth(val) />插槽里面没有东西就可以用单标签  -->
+                                                                              <!-- :min-width="calculateColumnWidth(key)"可以省略展示较多的文字内容 -->
 
                 <el-table-column
                     prop="scale"
@@ -84,24 +79,31 @@
             @open="open()"
             width="90%">
             <!-- 详情页part1 -->
-            <el-card :body-style={padding:0}>
+            <el-card class="card" :body-style={padding:0}>
                <!-- 1-上标 -->
               <span class="superscript" style="width: 20px; height: 40px;">事件详情</span>
                 <!-- 1-表 -->
-              <el-table class='table' :data="detailData_table1" :header-cell-style="{background: 'rgba(242, 242, 242, 0.654901960784314)'}" 
+              <el-table class='detail_table1' :data="detailData_table1" :header-cell-style="{background: 'rgba(242, 242, 242, 0.654901960784314)'}" 
                 border
-                height="215"   
+                height="300px"
+                :default-expand-all="true"     
                 :row-style="{height:'28px'}"
                 :cell-style="{padding:'0px'}"
                 header-row-class-name="active_header"
                 header-cell-class-name="active_header"
                 cell-class-name="content_center">
                 
-                <el-table-column v-for='(val,key) in detailLabel_table' :prop="key" :label="val" show-overflow-tooltip /><!--插槽里面没有东西就可以用单标签  -->
+                <el-table-column v-for='(val,key) in detailLabel_table' :prop="key" :label="val" :min-width="calculateColumnWidth(key)" /><!--插槽里面没有东西就可以用单标签  -->
               </el-table>
+<!--              没显示正文-->
+              <div style="height: 100% ;margin: 20px;">
+                <h4 style="margin-bottom: 5px;">事件正文：</h4>
+                <span style="display:block;text-indent:2em;line-height: 25px; ">{{this.detail_content}}</span> <!-- 首行缩进 -->
+              </div>
             </el-card >
+
             <!-- 详情页part2 -->
-            <el-card :body-style={padding:0}>
+            <el-card class="card" :body-style={padding:0}>
                <!-- 2-上标 -->
               <span class="superscript" style="width: 20px; height: 40px;">事件热度分析</span>
                 <!-- 2-表单 -->
@@ -121,7 +123,7 @@
                     </el-form-item>
 
                     <el-form-item>
-                      <el-button type="primary" @click="detail_onSubmit1" icon="el-icon-search" size="mini">查询</el-button>
+                      <el-button class="grayish_btn" @click="detail_onSubmit1" icon="el-icon-search" size="mini">查询</el-button>
                     </el-form-item>
                   </el-form>
               </div>
@@ -131,15 +133,15 @@
 
                 <div ref="echarts_3" style="height:300px;width:1000px; border: 1px solid #e0e0e0;margin:20px"></div>
               </div>
-              <span>
+              <!-- <span>
                 公司1xx事件一天时间内，在中国证券报的7时刻达到热度峰值，当前的热度状态为下降，预测未来一小时内的热度趋势为下降
-              </span>
+              </span> -->
 
              
             </el-card >
 
               <!-- 详情页part3 -->
-              <el-card :body-style={padding:0}>
+              <el-card class="card" :body-style={padding:0}>
                <!-- 3-上标 -->
               <span class="superscript" style="width: 20px; height: 40px;">其他关联事件</span>
                 <!-- 3-表单 -->
@@ -152,10 +154,10 @@
                       </el-select>
                     </el-form-item>
 
-                    <el-form-item label="事件相关：">
-                      <el-checkbox v-model="formInline3.related_event">本公司相关其他事件</el-checkbox>
-                      <!-- <el-radio v-model="radio" label="2">备选项</el-radio> -->
-                    </el-form-item>
+<!--                    <el-form-item label="事件相关：">-->
+<!--                      <el-checkbox v-model="formInline3.related_event">本公司相关其他事件</el-checkbox>-->
+<!--                      &lt;!&ndash; <el-radio v-model="radio" label="2">备选项</el-radio> &ndash;&gt;-->
+<!--                    </el-form-item>-->
 
                     <el-form-item label="选择时间：">
                       <el-select v-model="formInline3.detail_time" placeholder="选择时间：" size="mini">
@@ -164,27 +166,27 @@
                     </el-form-item>
 
                     <el-form-item>
-                      <el-button type="primary" @click="detail_onSubmit2" icon="el-icon-search" size="mini">查询</el-button>
+                      <el-button class="grayish_btn" @click="detail_onSubmit2" icon="el-icon-search" size="mini">查询</el-button>
                     </el-form-item>
                   </el-form>
               </div>
               
               <!-- 3-表 -->
-              <el-table class='table' :data="detailData_table2" :header-cell-style="{background: 'rgba(242, 242, 242, 0.654901960784314)'}" 
+              <el-table class='detail_table2' :data="detailData_table2" :header-cell-style="{background: 'rgba(242, 242, 242, 0.654901960784314)'}" 
                 border
-                height="215"   
+                height="600"   
                 :row-style="{height:'28px'}"
                 :cell-style="{padding:'0px'}"
                 header-row-class-name="active_header"
                 header-cell-class-name="active_header"
                 cell-class-name="content_center">
                 
-                <el-table-column v-for='(val,key) in detailLabel_table' :prop="key" :label="val" show-overflow-tooltip /><!--插槽里面没有东西就可以用单标签  -->
+                <el-table-column v-for='(val,key) in detailLabel_table' :prop="key" :label="val" :min-width="calculateColumnWidth(key)" /><!--插槽里面没有东西就可以用单标签  -->
               </el-table>
             </el-card >
 
               <!-- 详情页part4 -->
-              <el-card :body-style={padding:0}>
+              <el-card class="card" :body-style={padding:0}>
                <!-- 4-上标 -->
               <span class="superscript" style="width: 20px; height: 40px;">总体情感分析</span>
                 <!-- 2-表单 -->
@@ -204,15 +206,14 @@
                     </el-form-item>
 
                     <el-form-item>
-                      <el-button type="primary" @click="detail_onSubmit3" icon="el-icon-search" size="mini">查询</el-button>
+                      <el-button class="grayish_btn" @click="detail_onSubmit3" icon="el-icon-search" size="mini">查询</el-button>
                     </el-form-item>
                   </el-form>
               </div>
               <!-- 2-图 -->
               <div class="flex-charts">
-                <div ref="echarts_4" style="height:300px;width:1000px; border: 1px solid #e0e0e0;margin:20px"></div>
+                <div ref="echarts_4" style="height:300px;width:2000px; border: 1px solid #e0e0e0;margin:20px"></div>
 
-                <div ref="echarts_5" style="height:300px;width:1000px; border: 1px solid #e0e0e0;margin:20px"></div>
               </div>
 
 
@@ -224,19 +225,6 @@
         </el-dialog>
       </div>  <!-- 详情页结束 -->
     </div> <!-- 上一个板块结束 -->
-
-    <!-- 关系图/知识图谱：笛卡尔坐标系上的 Graph -->
-    <div class="two">
-      <el-card :body-style={padding:0} style='height: 510px;'>
-         <!-- 1、上标 -->
-         <span class="superscript" style="width: 20px; height: 40px;">事件图谱</span>
-         <div>
-          <div ref="echarts_1" style="height: 500px"></div>
-         </div>
-        <!-- 2、产品搜索栏 -->
-      </el-card>
-    </div>
-
   </div>
 
 
@@ -251,7 +239,9 @@ import qs from 'qs'
 import * as echarts from "echarts"
 // import pagination from '@/components/pagination.vue'
 import http from '../utils/request'
+import {Loading} from "element-ui";
 export default {
+  name:"event_analysis",
   components:{
 
   },
@@ -281,24 +271,53 @@ export default {
         formInline4: {
           detail_company:'',
           detail_time:'',
-        
         },
 
 
 // 【选择框】
-      options: [{
-        value: '增持事件',
-        label: '增持事件'
+      options: [
+        {
+          value: '',
+          label: '全部'
+        },
+          {
+        value: '股权增持',
+        label: '股权增持'
       }, {
-        value: '减持事件',
-        label: '减持事件'
+        value: '股东减持',
+        label: '股东减持'
       }, {
         value: '股权质押',
         label: '股权质押'
       }, {
         value: '其他',
         label: '其他'
-      }
+      },
+    {
+      value: '重大财产损失',
+          label: '重大财产损失'
+    },
+        {
+          value: '重大安全事故',
+          label: '重大安全事故'
+        },
+        {
+          value: '股权冻结',
+          label: '股权冻结'
+        },
+        {
+          value: '高层死亡',
+          label: '高层死亡'
+        },
+        {
+          value: '破产清算',
+          label: '破产清算'
+        },
+        {
+          value: '重大对外赔付',
+          label: '重大对外赔付'
+        },
+
     ],//issue_type只有  增持事件 减持事件 股权质押  
     
       option_detail_company: [{
@@ -381,117 +400,35 @@ export default {
   
       tableData: [
         { order: 1,
-          type: '其他',
+          type: '',
           objects: [
-            "中国银行股份有限公司",
-            "中国工商银行股份有限公司",
-            "中国人民银行",
-            "招商银行股份有限公司",
-            "中国农业银行股份有限公司",
-            "中国邮政储蓄银行股份有限公司"
           ],
-          title: '利率真要降了！买房人不眠：开始焦虑排不上队，“恨不得明天就是9月25号”',
-          abstract:'8月31日晚间，开源证券银行首席分析师刘呈祥在接受时代财经采访时表示，存量房贷利率下降会使得银行利息收入减少，进而对银行净息差和盈利能力形成负面影响，但预计对银行盈利能力的影响有限“在当下银行‘优质资产荒’的背景下，按揭贷款仍是竞争高地，适当降低利率以留住优质资产总比客户流失要好”，刘呈祥向时代财经分析称，“对于银行来说，协调好存量和增量房贷利率之间的利差，可有效缓解居民按揭提前还贷问题调整方式上，既可以变更合同约定的住房贷款利率加点幅度，也可以由银行新发放贷款置换存量贷款',
-          keyword:'利率买房',
-          publish_time:'发布时间',
-          event_heat:'事件热度',
-          risk_grade:'风险等级',}
+          title: '',
+          abstract:'',
+          keyword:'',
+          publish_time:'',
+          event_heat:'',
+          risk_grade:'',}
       ],
+      noNews:true,
 
-// 【知识图谱】
-      old_data:[
-           {事件标题:"XX股东XX时间增持XX股票事件",
-            情感倾向:"中性",
-            事件热度:"45",
-            时间:"2022/1/4",},
-             { 事件标题: "XX股东XX时间增持XX股票事件",
-            情感倾向:"积极",
-            事件热度:"30",
-            时间:"2022/1/4",},
-             { 事件标题: "XX股东XX时间增持XX股票事件",
-            情感倾向:"消极",
-            事件热度:"45",
-            时间:"2022/1/4",},
-             { 事件标题: "XX股东XX时间增持XX股票事件",
-            情感倾向:"消极",
-            事件热度:"30",
-            时间:"2022/1/4",},
-             { 事件标题: "XX股东XX时间增持XX股票事件",
-            情感倾向:"中性",
-            事件热度:"30",
-            时间:"2022/1/4",},
-             { 事件标题: "XX股东XX时间增持XX股票事件",
-            情感倾向:"积极",
-            事件热度:"30",
-            时间:"2022/3/8",},
-             { 事件标题: "XX股东XX时间增持XX股票事件",
-            情感倾向:"中性",
-            事件热度:"45",
-            时间:"2022/3/10",},
-             { 事件标题: "XX股东XX时间增持XX股票事件",
-            情感倾向:"消极",
-            事件热度:"45",
-            时间:"2022/3/10",},
-             { 事件标题: 8,
-            情感倾向:"中性",
-            事件热度:"30",
-            时间:"2022/3/10",},
-             { 事件标题: 9,
-            情感倾向:"消极",
-            事件热度:"30",
-            时间:"2022/3/14",},
-             { 事件标题: 10,
-            情感倾向:"中性",
-            事件热度:"45",
-            时间:"2022/3/14",},
-             { 事件标题:11,
-            情感倾向:"积极",
-            事件热度:"45",
-            时间:"2022/3/18",},
-             { 事件标题: 12,
-            情感倾向:"中性",
-            事件热度:"45",
-            时间:"2022/3/18",},
-             { 事件标题: 13,
-            情感倾向:"积极",
-            事件热度:"45",
-            时间:"2022/3/18",},
-             { 事件标题: 14,
-            情感倾向:"中性",
-            事件热度:"45",
-            时间:"2022/3/18",},
-             { 事件标题: 15,
-            情感倾向:"消极",
-            事件热度:"45",
-            时间:"2022/3/30",},
-             { 事件标题: 16,
-            情感倾向:"中性",
-            事件热度:"45",
-            时间:"2022/3/26",},
-             { 事件标题: 17,
-            情感倾向:"消极",
-            事件热度:"30",
-            时间:"2022/3/26",},
-             { 事件标题: 18,
-            情感倾向:"中性",
-            事件热度:"45",
-            时间:"2022/3/26",},],
+
 
 // 【详情页】
     detailsdialog: false,// 详情页是否打开的判断标签
-    // 表格(待改)
+    // 表格
       detailLabel_table: {
           objects: '涉及对象',
           title: '事件标题',
           abstract:'事件摘要',
           keyword:'事件关键词',
-          content:'事件正文',
+          // content:'事件正文',
           site_name:'发布渠道',
-          sentiment:'情感倾向',
+          // sentiment:'情感倾向',
           url:'报导链接',
           publish_time:'发布时间',
           potiential_risks:'潜在风险',
-          risk_grade:'风险等级',
+          // risk_grade:'风险等级',
 
       },
 
@@ -528,209 +465,69 @@ export default {
   }
 }, 
     mounted(){
-          
-
-          //关系图
-          //基于准备好的dom，初始化echarts实例
-          // var ROOT_PATH = 'https://echarts.apache.org/examples';
-          console.log(this.old_data.情感倾向)
-          const echarts1 = echarts.init(this.$refs.echarts_1)
-          var legends = ['消极', '中性', '积极'];
-          var colors=[ "#D9001B","#009DD9","#90F204"]
-          const markLineList=[] //垂直线
-          const timeList=[]//存不重复的时间
-          const nor_time=[]//存所有的时间
-          const nodeid=[]
-          const new_data=[]
-
-
-
-          var count=0
-          for(var {时间: time} of this.old_data){
-              nor_time.push(time)
-          // 返回值等于-1 说明数组timeList中不存在time,则存入
-              if(timeList.indexOf(time)==-1 ){
-                timeList.push(time)
-                nodeid.push(count)
-                markLineList.push({xAxis: count})
-                count=count+1
-              }
-              
-          }
-
-          timeList.sort(function (a, b) {
-            return a - b; //a - b < 0: 代表后一个比前一个大，就是升序
-          })
-
-          const x_y=[]
-          // console.log(timeList.length)
-          for (var i = 0; i < timeList.length; i++) {
-
-            var x=i
-            var y=1//初始为1让坐标轴暴露更明显
-            for (var item of nor_time){
-              if(item===timeList[i] ){
-                y+=1
-                x_y.push([x,y])
-            }
-          }
-
+    // if ( JSON.stringify(sessionStorage.getItem('eventData')) !== "{}")
+    //   this.tableData=JSON.parse(sessionStorage.getItem('eventData'))
+    //
+    //   let target=JSON.parse(sessionStorage.getItem('target'))
+    //   if (target.length!==0) {
+    //     // console.log(1)
+    //     console.log(target)
+    //     this.formInline1.company = target[0]
+    //     this.formInline1.event_type = target[1]
+    //     this.formInline1.start_date = target[2]
+    //     this.formInline1.end_date = target[3]
+    //   }
 
           
-          // console.log(x_y)
-          }
-
-          for (var i = 0; i < this.old_data.length; i++) {
-              var index=legends.indexOf(this.old_data[i].情感倾向)
-              
-              new_data.push({
-                  id:i,
-                  name:this.old_data[i].事件标题,
-
-                  label: { 
-                    normal: {
-                        show: true,
-                        position: "bottom",
-                        textStyle: {
-                          fontSize: 13
-                        },},
-
-                    data:legends[index],
-                    color: "rgb(0, 0, 0)",
-
-                  },
-                  // color: colors[index],
-                  symbolSize:this.old_data[i].事件热度,
-                  // symbolSize:20,
-                  value: x_y[i],
-                  itemStyle: {
-                      borderColor: '#fff',
-                      borderWidth: 2,
-                      shadowBlur: 2,
-                      shadowColor: '#999999',
-                      color: colors[index],
-                      
-                  }
-        
-          })}
-
-
-          console.log(new_data)
-          const option = {
-            // 右上角存图
-              toolbox: {
-                feature: {
-                  saveAsImage: {}
-                }
-              },
-              // title: {
-              //     text: '笛卡尔坐标系上的 Graph'
-              // },
-              xAxis:[ {
-                  // type : 'category',
-                  // boundaryGap : false,
-                  data : timeList
-
-                  
-              }
-              
-              ],
-              yAxis: {
-                
-                  show:false, // 不显示坐标轴线、坐标轴刻度线和坐标轴上的文字
-                  // type : 'category',//注释后，数轴0开始，不然点会遮住坐标轴
-                  // boundaryGap : false,//位于点还是位于区域
-                  // data: ['a','b','c','d']
-              },               
-              
-              legend: {
-                data: ['消极', '中性', '积极'],  //图例的数据
-                top: "15%",   //图例的位置
-                icon:"circle",  //图例的形状
-                x: 'right',        //图例在右侧
-                orient: 'vertical',  //图例纵向排布   horizontal为横向排布
-                textStyle: {         //图例字体的颜色
-                    color: "#ffffff"
-                }},
-
-
-              // legend: {
-              //       normal: {
-              //         data: ['消极', '中性', '积极'],
-              //         show: true,}
-              //     },
-
-
-              series: [
-                {
-                  
-
-                  type: 'graph',
-                  // layout: 'none',
-                  coordinateSystem: 'cartesian2d',        
-                  
-
-                  // 垂直线
-                  markLine: {
-                      symbol: ['none', 'none'],
-                      label: { show: false },
-                      data: markLineList,
-                      lineStyle: {//标注线样式
-                        
-                          type: 'dashed',//虚线
-                          color: '#999999',//标注线颜色
-
-                    },
-                  },
-                  
-
-
-                  // 边两段的类型和大小
-                  edgeSymbol: ['circle', 'circle'],
-                  edgeSymbolSize: [4,4],
-                  // 
-                  data:new_data,
-
-                  //显示节点备注
-                  itemStyle : { 
-                    normal: {label : {show: true}},
-                    textStyle: {
-                    color: '#000'
-                  }
-      
-                    },
-                  
-                  
-                //  边
-                  links: [
-                      {source: 0, target: 5},
-                      {source: 5, target: 6},
-                      {source: 1, target: 7},
-                      {source: 2, target: 8},
-                      {source: 3, target: 13},
-                      {source: 8, target: 9},
-                      ],
-                  lineStyle: {//关系线样式
-
-                      type: 'solid',//实线
-                      color: "rgb(0, 0, 0,80%)",//标注线颜色
-                      width: "2",
-                  },
-                 
-                
-                }]
-          }
-          echarts1.setOption(option)
- 
-         
     },
 
     
 
   methods:{
+    // 调整表格列宽
+    calculateColumnWidth(prop) {
+      console.log(prop)
+      const text = String(this.tableData[0][prop]); // 使用第一行的数据作为示例
+      const calculatedWidth = text.length;
+      console.log(calculatedWidth)
+      // console.log('console.log(calculatedWidth):',calculatedWidth)
+      if(calculatedWidth>10 && calculatedWidth<=50){
+        const baseWidth= 20 + calculatedWidth * 0.9
+        return `${baseWidth}px`;
+      }
+      if(calculatedWidth<=10){
+        const baseWidth= 20
+        return `${baseWidth}px`;
+      }
+      else{
+        const baseWidth= 20 + calculatedWidth * 0.5
+        return `${baseWidth}px`;
+      }
+    },
+
+    widthDict(key){
+      let dic={'title':200,
+              'type':80,
+        'objects': 150,
+
+        'abstract':800,
+        'keyword':100,
+        // content:'事件正文',
+        // site_name:'发布渠道',
+        // sentiment:'情感倾向',
+        // url:'报导链接',
+        publish_time:'发布时间',
+        potiential_risks:'潜在风险',
+
+
+      }
+return `${dic[key]}px`;
+
+    },
+  
     //新闻联想搜索
     querySearch(queryString, cb) {
-      console.log(queryString)
+      // console.log(queryString)
       // console.log(cb)
       http.get(
           "/search/search_news/?name=?"+queryString,
@@ -749,7 +546,10 @@ export default {
       })},
     // 1、表
     onSubmit1(){//事件分析
-        console.log('事件分析表格')
+      let options={
+        text:'请稍等'
+      }
+      let loadingInstance = Loading.service(options);
         http.get(
                 "/event2/event_analyse/",
                 {params:{
@@ -757,28 +557,52 @@ export default {
                     event_type:this.formInline1.event_type,
                     start:this.formInline1.start_date,
                     end:this.formInline1.end_date,
+                    need:0
         }}).then(response => {
-            this.tableData = response.data.data
+          if(response.data.data.length!==0)
+          { this.tableData = response.data.data
+              this.noNews=false}
+          else {
+            this.tableData= [
+              { order: 1,
+                type: '',
+                objects: [
 
-          })
+                ],
+                title: '',
+                abstract:'',
+                keyword:'',
+                publish_time:'',
+                event_heat:'',
+                risk_grade:'',}
+            ]
+          this.noNews=true}
+          // sessionStorage.removeItem('eventData')
+          // sessionStorage.setItem('eventData',JSON.stringify(this.tableData))
+          // sessionStorage.removeItem('target')
+          // sessionStorage.setItem('target',JSON.stringify([this.formInline1.company,this.formInline1.event_type,this.formInline1.start_date,this.formInline1.end_date]))
+          // console.log(this.tableData)
+          //关系图
+          //基于准备好的dom，初始化echarts实例
+          // var ROOT_PATH = 'https://echarts.apache.org/examples';
+         
+      loadingInstance.close()
+          }).finally(()=>loadingInstance.close())
        },
-      // 2、图谱
-    onSubmit2(){//事件图谱 待完成
-        console.log('事件图谱')
-    },
+
 
 // 3、查看详情-card1（表）表格点击查看详情
     detail(row){
       let tmp=[]
       this.option_detail_company.length=0
-      console.log(row.order)//返回银行id
+      // console.log(row.order)//返回银行id
       this.targetId=row.order
       for (let i in this.tableData)
         if (this.targetId===this.tableData[i].order)
           tmp=this.tableData[i].objects
       for (let i in tmp)
       this.option_detail_company.push({value:tmp[i],label:tmp[i]})
-      console.log(this.option_detail_company)
+      // console.log(this.option_detail_company)
       //这个地方需要连一个新接口
       //提供弹窗的数据
       this.detailsdialog = true//打开弹窗
@@ -789,10 +613,77 @@ export default {
 
         }}).then(response => {
             this.detailData_table1 = Array(response.data.data[this.targetId])
-            this.detail_content=response.data.data.content
-            // console.log(response)
+            this.detail_content=response.data.data[this.targetId].content[0]
+            console.log(response.data.data)
             // console.log(response.data)
+        http.get(
+            "/event2/event_clout_analyse/",//修改接口名称
+            {params:{
+                company: this.formInline1.company,
+                // delta:this.formInline2.detail_time,
+                event_id:this.targetId
+              }}).then(response => {
+          this.clout = response.data.data
+          // console.log(this.clout)
+          // 详情页的，面积图
+          const echarts2 = echarts.init(this.$refs.echarts_2)
+          const option_2={
+            // 右上角存图
+            toolbox: {
+              feature: {
+                saveAsImage: {}
+              }
+            },
+            title: {
+              text: '事件热度分析'
+            },
+            tooltip: {
+              trigger: 'axis',
+              axisPointer: {
+                type: 'cross',
+                label: {
+                  backgroundColor: '#6a7985'
+                }
+              }
+            },
+            // legend: {
+            //   data: ['渠道1', '渠道2', '渠道3']
+            // },
+            grid: {
+              left: '3%',
+              right: '4%',
+              bottom: '3%',
+              containLabel: true
+            },
+            xAxis: [
+              {
+                type: 'category',
+                boundaryGap: false,
+                data: this.clout.date,
+                name: '日'
+              }
+            ],
+            yAxis: [
+              {
+                type: 'value'
+              }
+            ],
+            series: [
+              {
+                name: '渠道1',
+                type: 'line',
+                stack: 'Total',
+                areaStyle: {},
+                emphasis: {
+                  focus: 'series'
+                },
+                data: this.clout.value
+              }
 
+            ]
+          }
+          echarts2.setOption(option_2)
+        })
           })
 
       
@@ -800,67 +691,157 @@ export default {
 
 // 4、5-查看详情-card2（面积图、环形图）（缺）
     detail_onSubmit1(){//详情页表单查询-事件热度分析(待修改)
-        console.log('点击查询，返回两个(1个)接口-(4/5)')
-        // 4、查看详情-card2（面积图）（缺）
-        http.get(
-                "/event2/event_clout_analyse/",//修改接口名称
-                {params:{
-                    company: this.formInline2.detail_company,//修改参数名称
-                    // delta:this.formInline2.detail_time,
-                    event_id:this.targetId
-        }}).then(response => {
-            this.clout = response.data.data
-            console.log(this.clout)
           // })
+      if (this.sentiment.length!==0)
+        this.sentiment.length=0
         //5、查看详情-card2（环形图）
         http.get(
                 "/event2/sentiment_analyse/",
                 {params:{//修改接口
                     delta: this.formInline2.detail_time,//选择时间：间隔时间
                     other_name:this.formInline2.detail_company,//关联公司名
+                    detail:0
         }}).then(response => {
-            for(let i in  response.data.data.value)//待修改
-              this.sentiment.push({name:i,value:response.data.data.value[i]})
-            console.log(this.sentiment)
+          if (JSON.stringify(response.data.data)==='{}')
+            alert('暂无数据')
+          else
+            // console.log(Array(response.data.data))
+            for(let i in response.data.data)
+            { if (i==='FAVOR')
+              this.sentiment.push({name:'赞成',value:response.data.data[i]})
+              if (i==='NONE')
+            this.sentiment.push({name:'中立',value:response.data.data[i]})
+              if (i==='AGAINST')
+            this.sentiment.push({name:'反对',value:response.data.data[i]})}
+            // console.log(this.sentiment)
             this.initEcharts1()
           })
-       }
-       )},
+       },
+
 
 
  
 // 6、查看详情-card3（表）
        detail_onSubmit2(){//详情页表单查询-其他关联事件
-        console.log('其他关联事件-表格')
+        // console.log('其他关联事件-表格')
         http.get(
-                "/event/other/",
+                "/event2/other_events/",
                 {params:{
-                    delta_time: this.formInline.detail_company,
-                    id:this.formInline.detail_time,
-                    name:this.formInline.related_event,
-
+                    delta: this.formInline3.detail_time,
+                    event_id:this.targetId,
+                    other_name:this.formInline3.detail_company,
         }}).then(response => {
-            this.tableData = response.data
-            console.log(response)
-            console.log(response.data)
-
+            // console.log(response.data)
+          if (response.data.data.length===0)
+            alert('暂无数据')
+          else
+            this.detailData_table2=response.data.data
           })
        },
 // 7、8 查看详情-card4（曲线图、环形图）
        detail_onSubmit3(){//详情页表单查询-总体情感分析(待修改)
         console.log('总体情感分析-曲线图')
-        // http.get(
-        //         "/",
-        //         {params:{
-        //             com_name: this.formInline.detail_company,
-        //             issue_type:this.formInline.detail_time,
+        http.get(
+            "/event2/sentiment_analyse/",
+                {params:{
+                    other_name: this.formInline4.detail_company,
+                    delta:this.formInline4.detail_time,
+                    detail:1
+        }}).then(response => {
+          if (response.data.data.time.length === 0)
+            alert('暂无数据')
+          else {
+            let time = response.data.data.time
+            let favor = response.data.data.favor
+            let none = response.data.data.none
+            let against = response.data.data.against
+            const echarts4 = echarts.init(this.$refs.echarts_4)
+            const option_4 =
 
-        // }}).then(response => {
-        //     this.tableData = response.data
-        //     console.log(response)
-        //     console.log(response.data)
+                {
+                  title: {
+                    text: '总体情感趋势',
+                    x: 'center',//水平安放位置，默认为'left'，可选为：'center' | 'left' | 'right' | {number}（x坐标，单位px）
 
-        //   })
+                  },
+                  // tooltip: {
+                  //   trigger: 'axis'
+                  // },
+                  legend: {
+                    data: [
+                      {name: '积极', itemStyle: {opacity: 0}},
+                      {name: '中性', itemStyle: {opacity: 0}},
+                      {name: '消极', itemStyle: {opacity: 0}}
+                    ],
+
+                    x: 'right',//水平安放位置，默认为'left'，可选为：'center' | 'left' | 'right' | {number}（x坐标，单位px）
+                    y: "top",
+                    padding: 40,
+                  },
+                  grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true//用来防止数值过大而超出视图
+                  },
+                  toolbox: {
+                    feature: {
+                      saveAsImage: {}
+                    }
+                  },
+                  xAxis: {
+                    data: time,
+                    axisLabel: {//横坐标倾斜
+                      interval: 0,
+                      rotate: 40
+                    }
+                  },
+                  yAxis: {
+                    type: 'value',
+
+
+                  },
+                  series: [
+                    {
+                      name: '积极',
+                      type: 'line',
+                      data: favor,
+                      showSymbol: false,//每个点不用圆圈突出显示
+                      smooth: true,//平滑折线图
+                      // 折线样式
+                      lineStyle: {
+                        color: '#6ac96e'//红色
+                      },
+                    },
+                    {
+                      name: '中性',
+                      type: 'line',
+                      data: none,
+                      showSymbol: false,//每个点不用圆圈突出显示
+                      smooth: true,//平滑折线图
+                      // 折线样式
+                      lineStyle: {
+                        color: '#ffe96c'//蓝色'
+                      },
+                    },
+                    {
+                      name: '消极',
+                      type: 'line',
+                      data: against,
+                      showSymbol: false,//每个点不用圆圈突出显示
+                      smooth: true,//平滑折线图
+                      // 折线样式
+                      lineStyle: {
+                        color: '#f6572e'//蓝色'
+                      },
+                    },
+
+                  ]
+                }
+            echarts4.setOption(option_4)
+          }
+        }
+        )
         console.log('总体情感分析-环形图')
         // http.get(
         //         "/",
@@ -881,112 +862,6 @@ export default {
 
 
        initEcharts1() {
-       // 详情页的，面积图
-          const echarts2 = echarts.init(this.$refs.echarts_2)
-          const option_2={
-            // 右上角存图
-            toolbox: {
-              feature: {
-                saveAsImage: {}
-              }
-            },
-              title: {
-                text: '事件热度分析'
-              },
-              tooltip: {
-                trigger: 'axis',
-                axisPointer: {
-                  type: 'cross',
-                  label: {
-                    backgroundColor: '#6a7985'
-                  }
-                }
-              },
-              legend: {
-                data: ['渠道1', '渠道2', '渠道3']
-              },
-              toolbox: {
-                feature: {
-                  saveAsImage: {}
-                }
-              },
-              grid: {
-                left: '3%',
-                right: '4%',
-                bottom: '3%',
-                containLabel: true
-              },
-              xAxis: [
-                {
-                  type: 'category',
-                  boundaryGap: false,
-                  data: ['0', '1', '2', '3', '4', '5', '6'],
-                  name: '天'
-                }
-              ],
-              yAxis: [
-                {
-                  type: 'value'
-                }
-              ],
-              series: [
-                {
-                  name: '渠道1',
-                  type: 'line',
-                  stack: 'Total',
-                  areaStyle: {},
-                  emphasis: {
-                    focus: 'series'
-                  },
-                  data: [120, 132, 101, 134, 90, 230, 210]
-                },
-                {
-                  name: '渠道2',
-                  type: 'line',
-                  stack: 'Total',
-                  areaStyle: {},
-                  emphasis: {
-                    focus: 'series'
-                  },
-                  data: [220, 182, 191, 234, 290, 330, 310]
-                },
-                {
-                  name: '渠道3',
-                  type: 'line',
-                  stack: 'Total',
-                  areaStyle: {},
-                  emphasis: {
-                    focus: 'series'
-                  },
-                  data: [150, 232, 201, 154, 190, 330, 410]
-                },
-                {
-                  name: 'Direct',
-                  type: 'line',
-                  stack: 'Total',
-                  areaStyle: {},
-                  emphasis: {
-                    focus: 'series'
-                  },
-                  data: [320, 332, 301, 334, 390, 330, 320]
-                },
-                {
-                  name: 'Search Engine',
-                  type: 'line',
-                  stack: 'Total',
-                  label: {
-                    show: true,
-                    position: 'top'
-                  },
-                  areaStyle: {},
-                  emphasis: {
-                    focus: 'series'
-                  },
-                  data: [820, 932, 901, 934, 1290, 1330, 1200]
-                }
-              ]
-            }
-          echarts2.setOption(option_2)
 
           // 详情页的环形图
           const echarts3 = echarts.init(this.$refs.echarts_3)
@@ -1037,135 +912,12 @@ export default {
 
       },
       
-      initEcharts2() {
-       // 详情页的线形图
-          const echarts4 = echarts.init(this.$refs.echarts_4)
-          const option_4=
 
-          {
-      title: {
-        text: '2021-03-17总体情感趋势',
-        x:'center',//水平安放位置，默认为'left'，可选为：'center' | 'left' | 'right' | {number}（x坐标，单位px）
-      
-      },
-      // tooltip: {
-      //   trigger: 'axis'
-      // },
-      legend: {
-          data:[
-            {name:'积极',itemStyle:{ opacity:0 }},
-            {name:'消极',itemStyle:{ opacity:0 }}
-            ],
-
-        x:'right',//水平安放位置，默认为'left'，可选为：'center' | 'left' | 'right' | {number}（x坐标，单位px）
-        y:"top",
-        padding:40,
-      },
-      grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '3%',
-        containLabel: true//用来防止数值过大而超出视图
-      },
-      toolbox: {
-        feature: {
-          saveAsImage: {}
-        }
-      },
-      xAxis: {
-        data: [1,2,3,4,5,6,7,8],
-        axisLabel: {//横坐标倾斜
-          interval:0,
-          rotate:40}
-      },
-      yAxis: {
-        type: 'value',
-        
-
-      },
-      series: [
-        {
-          name: '积极',
-          type: 'line',
-          data: [120, 132, 101, 134, 90, 230, 210],
-          showSymbol: false,//每个点不用圆圈突出显示
-          smooth: true,//平滑折线图
-          // 折线样式
-          lineStyle: {
-            color: '#C24141'//红色
-          },
-        },
-        {
-          name: '消极',
-          type: 'line',
-          data: [220, 182, 191, 234, 290, 330, 310],
-          showSymbol: false,//每个点不用圆圈突出显示
-          smooth: true,//平滑折线图
-          // 折线样式
-          lineStyle: {
-            color: '#0e539a'//蓝色'
-          },
-        },
-        
-      ]
-    }
-          echarts4.setOption(option_4)
-
-          // 详情页的环形图
-          const echarts5 = echarts.init(this.$refs.echarts_5)
-          const option_5={
-            // 右上角存图
-            toolbox: {
-              feature: {
-                saveAsImage: {}
-              }
-            },
-            tooltip: {
-              // trigger: 'item'
-            },
-            legend: {
-              top: '5%',
-              left: 'center'
-            },
-            series: [
-              {
-                // name: 'Access From',
-                type: 'pie',
-                radius: ['40%', '70%'],
-                avoidLabelOverlap: false,
-                itemStyle: {
-                  borderRadius: 10,
-                  borderColor: '#fff',
-                  borderWidth: 2
-                },
-                label: {
-                  show: false,
-                  position: 'center'
-                },
-                emphasis: {
-                  label: {
-                    show: true,
-                    fontSize: 40,
-                    fontWeight: 'bold'
-                  }
-                },
-                labelLine: {
-                  show: false
-                },
-                data: this.circularData2
-              }
-            ]
-          }
-          echarts5.setOption(option_5)
-
-      },
-
-// 弹窗显示echarts
-       open(){
+      open(){
         this.$nextTick(() => {
         //  执行echarts方法
-        //   this.initEcharts1()
-          this.initEcharts2()
+          this.initEcharts1()
+          // this.initEcharts2()
         })
       },
 
@@ -1176,6 +928,28 @@ export default {
 
 <style lang="less" scoped>
 // 调整表头间隔、设置表头下方边框颜色
+.table{
+margin-top: 15px;
+margin-right: 0px;
+margin-left: 5px;
+padding: 0px;
+
+}
+.detail_table1{
+  margin-top: 15px;
+  margin-left: 10px;
+
+}
+.detail_table2{
+  margin-top: 0px;
+  margin-left: 10px;
+
+
+  
+}
+/deep/ .el-table {
+  width: 98.5% !important;
+}
 /deep/ .el-table td.el-table__cell, .el-table th.el-table__cell.is-leaf {
       border-bottom: 1px solid rgba(224, 223, 223, 0.771) !important;
       padding: 0px 0 !important;
@@ -1187,13 +961,13 @@ export default {
     }
     /deep/ .active_header{//表头
       color: #333333;
-      font-size: 9px;
+      font-size: 13px;
       text-align: center !important;
       // height: 1px;
     }
     /deep/ .content_center{//表的内容
       text-align: center !important;
-      font-size: 10px;
+      font-size: 13px;
     }
 
 
@@ -1203,11 +977,13 @@ export default {
     display:flex;
     justify-content:space-between;//左右贴边
     margin-top:5px; 
+    margin-bottom: 0px;
     // height: 40px;
     padding-left: 20px;
 
   }
   .content{
+    margin-top: 20px;
     padding: 0px 20px 2px 20px;//返回表格添加间隙 上 右
     font-size: 12px;
 
@@ -1217,16 +993,13 @@ export default {
   .text{
     color:rgba(2, 167, 240, 0.729411764705882);
   }
-
+.card{
+  margin-bottom: 10px;
+}
   }
-.two{
-  margin-top:10px; 
-}
-// 详情页
-.flex-charts{//并列图
-    // margin-top:20px; 
-    display:flex;
-    justify-content:space-between;
-    // padding:20px;
-}
+  .grayish_btn{//浅灰色按钮
+    color: #fff;//文字颜色
+    background-color: #aaaaaa;//背景颜色
+  }
+
 </style>

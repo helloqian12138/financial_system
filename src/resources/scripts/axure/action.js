@@ -1970,7 +1970,7 @@
                     img = evaluatedImgs.mouseOver;
                 }
 
-                //            $('#' + $ax.repeater.applySuffixToElementId(elementId, '_img')).attr('src', img);
+                //            $('#' + $ax.repeater.applySuffixToElementId(elementId, '_img')).attr('src_old', img);
                 $jobj($ax.GetImageIdFromShape(elementId)).attr('src', img);
 
                 //Set up overrides

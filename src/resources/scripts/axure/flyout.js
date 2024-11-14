@@ -105,7 +105,7 @@ $axure.internal(function($ax) {
     var getSmallPolygon = function(r0, r1, info) {
         var points = [];
 
-        // NOTE: currently I make the assumption that if horizontal/vertical connecting lines from the src hit the target
+        // NOTE: currently I make the assumption that if horizontal/vertical connecting lines from the src_old hit the target
         //        Meaning if horizontal, rlr and lrl are true, and if vertical, tbt and bab are true.
 
         var r0Left = r0.Left();

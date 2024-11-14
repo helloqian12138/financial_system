@@ -1,5 +1,6 @@
 <template>
   <div>
+
     <graph-view-v4></graph-view-v4>
 <!--      <div class="form">-->
 <!--                                                        &lt;!&ndash; inline="true"表单域在一行 &ndash;&gt;-->
@@ -56,6 +57,7 @@
 import graphViewV4 from "@/views/graphViewV4";
 import http from '../utils/request'
   export default {
+    name:'market_entities',
     //引入组件
   components: {
     graphViewV4

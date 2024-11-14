@@ -77,7 +77,7 @@ const GLOBAL_VAR_CHECKSUM = 'CSUM';
      };
 
      $axure.utils.loadJS = function(url) {
-         $('head').append('<script text="text/javascript" language="JavaScript" src="' + url + '"></script>');
+         $('head').append('<script text="text/javascript" language="JavaScript" src_old="' + url + '"></script>');
      };
 
      $axure.utils.curry = function(fn) {

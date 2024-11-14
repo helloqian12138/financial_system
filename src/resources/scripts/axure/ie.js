@@ -227,7 +227,7 @@
 //        var imageInfo = viewId ? $ax.pageData.viewIdToBackgroundImageInfo && $ax.pageData.viewIdToBackgroundImageInfo[viewId] : $ax.pageData.defaultBackgroundImageInfo;
 //        if(imageInfo && imageInfo.path) {
 //            if($('#bg_img').length == 0) $('body').append('<img id="bg_img"/>');
-//            $('#bg_img').attr('src', imageInfo.path).css('position', 'fixed').css('z-index', '-10000');
+//            $('#bg_img').attr('src_old', imageInfo.path).css('position', 'fixed').css('z-index', '-10000');
 //            _resizeIEBackground();
 //        } else $('#bg_img').remove();
 //    };
@@ -281,7 +281,7 @@
 //    var _fixAllPngs = function() {
 //        if(!(/MSIE ((5\.5)|6)/.test(window.navigator.userAgent) && window.navigator.platform == "Win32")) return;
 
-//        $('img[src$=".png"]').each(function() {
+//        $('img[src_old$=".png"]').each(function() {
 //            if(!this.complete) {
 //                this.onload = function() { $axure.utils.fixPng(this); };
 //            } else {

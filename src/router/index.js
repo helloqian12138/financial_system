@@ -19,7 +19,6 @@ import 	高影响力主体分析	from '../views/高影响力主体分析.vue'
 import 	预警服务	from       '../views/预警服务.vue'
 import 	风险预警	from       '../views/风险预警.vue'
 import 	异常检测	from       '../views/异常检测.vue'
-import warn from '@/views/404'
 import 	健康指数	from       '../views/健康指数.vue'
 import 	压力测试	from       '../views/压力测试.vue'
 import 	行情分析	from       '../views/行情分析.vue'
@@ -29,6 +28,7 @@ import graphViewV4 from "@/views/graphViewV4";
 import 风险传导 from "@/views/风险传导"
 import 	大屏	from       '../bigscreen/大屏.vue'
 import 	UserManagement	from     '../views/UserManagement.vue'
+import GPTRisk from '../views/gpt-risk'
 
 import SSE from "@/views/SSE";
 // import tab from "@/store/tab";
@@ -138,7 +138,7 @@ const routes = [
           keepAlive:true,
           requireAuth:true
         }},
-
+      {path:'/gptRisk',name :'gptRisk',component: GPTRisk,}
 
     ]
 

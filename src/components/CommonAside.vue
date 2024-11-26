@@ -171,6 +171,13 @@ export default {
           icon: "s-help",
         },
 
+        {
+          path: "/gptRisk",//5
+          name: "gptRisk",
+          label: "主体风险",
+          icon: "warning",
+        },
+
 
   
       ],

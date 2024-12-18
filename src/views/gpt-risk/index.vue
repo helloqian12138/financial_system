@@ -45,7 +45,14 @@ export default {
             limit: this.limit,
           },
         });
-        this.data = response.data.data;
+        try {
+          const parsedData = typeof response.data === "string" ? JSON.parse(response.data)
+          : response.data;
+          this.data = parsedData.data;
+        } catch (e) {
+          console.error("Error parsing data:", e);
+          this.data = [];
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       }
